@@ -3,5 +3,5 @@
 import torch
 
 seed = 42
-g = torch.Generator()
-g.manual_seed(seed)
+generator = torch.Generator()
+generator.manual_seed(seed)
