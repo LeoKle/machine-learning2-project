@@ -6,6 +6,8 @@ class Generator(nn.Module):
     def __init__(self, latent_dim=100, dataset: Literal["MNIST", "CIFAR10"] = "MNIST"):
         super().__init__()
 
+        self.latent_dim = latent_dim
+
         if dataset == "MNIST":
             self.out_channels = 1
             self.image_size = 28
