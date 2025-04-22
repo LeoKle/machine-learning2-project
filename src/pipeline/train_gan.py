@@ -128,9 +128,9 @@ class GanTrainingPipeline:
 
                 generator_output = self.generator(latent_tensor)
 
-                Plotter.plot(
+                Plotter.show_image(
                     generator_output[0], output_file_name=f"output/gan_{epoch}.png"
                 )
-                Plotter.plot(
+                Plotter.show_image(
                     generator_output[0], output_file_name=f"output/#latest.png"
                 )

@@ -14,12 +14,12 @@ class TestPlotter(unittest.TestCase):
 
     @patch("matplotlib.pyplot.show")
     def test_plot_cifar_tensor(self, mock_show):
-        Plotter.plot(self.cifar_tensor, show=True)
+        Plotter.show_image(self.cifar_tensor, show=True)
         mock_show.assert_called_once()
 
     @patch("matplotlib.pyplot.show")
     def test_plot_mnist_tensor(self, mock_show):
-        Plotter.plot(self.mnist_tensor, show=True)
+        Plotter.show_image(self.mnist_tensor, show=True)
         mock_show.assert_called_once()
 
     def test_plot_saves_to_file(self):
@@ -27,7 +27,7 @@ class TestPlotter(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "test_plot.png"
 
-            Plotter.plot(self.mnist_tensor, output_file_name=output_path)
+            Plotter.show_image(self.mnist_tensor, output_file_name=output_path)
 
             self.assertTrue(output_path.exists(), "Plot file was not created.")
 
