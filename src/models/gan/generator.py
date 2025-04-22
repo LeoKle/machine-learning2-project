@@ -21,11 +21,11 @@ class Generator(nn.Module):
 
         self.main = nn.Sequential(
             nn.Linear(latent_dim, 256),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(256, 512),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(512, 1024),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(1024, self.output_dim),
             nn.Tanh(),
         )
