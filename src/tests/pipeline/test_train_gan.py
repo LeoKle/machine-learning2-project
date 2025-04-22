@@ -20,7 +20,7 @@ class TestGanPipeline(unittest.TestCase):
         cls.optimizer_discriminator = torch.optim.Adam(cls.discriminator.parameters())
         cls.optimizer_generator = torch.optim.Adam(cls.generator.parameters())
 
-        cls.dataloader_train, cls.dataloader_test = get_dataloaders()
+        cls.dataloader_train, cls.dataloader_test = get_mnist_dataloaders()
 
         cls.pipeline = GanTrainingPipeline(
             dataloader_train=cls.dataloader_train,
