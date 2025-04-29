@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 import torch
 
+from classes.tracker import DataDict
 from utils.plotter import Plotter
 
 
@@ -30,6 +31,15 @@ class TestPlotter(unittest.TestCase):
             Plotter.show_image(self.mnist_tensor, output_file_name=output_path)
 
             self.assertTrue(output_path.exists(), "Plot file was not created.")
+
+    def test_plot_metrics(self):
+        metric_dict: DataDict = {"epochs": [0, 1, 2], "accuracy": [0.5, 0.6, 0.7]}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = Path(tmpdir) / "test_plot.png"
+
+            Plotter.plot_metrics(metric_dict, output_path)
+
+            self.assertTrue(output_path.exists)
 
 
 if __name__ == "__main__":

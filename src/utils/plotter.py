@@ -1,6 +1,9 @@
 from pathlib import Path
+from typing import DefaultDict, List
 from matplotlib import pyplot as plt
 import torch
+
+from classes.tracker import DataDict
 
 
 class Plotter:
@@ -36,3 +39,23 @@ class Plotter:
             plt.show()
 
         plt.close(fig)
+
+    @staticmethod
+    def plot_metrics(metrics: DataDict, output_file_name: Path):
+        fig, ax = plt.subplots()
+
+        # remove epochs from data
+        metrics.pop("epochs")
+
+        for metric, values in metrics.items():
+            ax.plot(values, label=metric)
+
+        ax.set_title("Metrics")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Value")
+        ax.legend()
+        ax.grid(True)
+
+        fig.tight_layout()
+        fig.savefig(output_file_name)
+        plt.show()
