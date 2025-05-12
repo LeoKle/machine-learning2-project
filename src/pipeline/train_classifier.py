@@ -82,7 +82,7 @@ class ClassifierTrainingPipeline:
                 torch.save(self.model.state_dict(), save_path)
         
         metrics = self.tracker.get_metrics()
-        plot_path = save_path.parent / "classifier_metrics.png" if save_path else Path("classifier_metrics.png")
+        plot_path = save_path.parent / "output/classifier_metrics.png" if save_path else Path("output/classifier_metrics.png")
         Plotter.plot_metrics(metrics, plot_path)
         
         print("Training completed!")

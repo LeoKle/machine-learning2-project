@@ -11,19 +11,18 @@ from data.cifar10 import get_cifar10_dataloaders
 from classes.metrics import Metrics
 from models.classifier.classifier import Classifier
 from utils.device import DEVICE
+from utils.plotter import Plotter
 
 class TestClassifierMetrics(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        # Initialize models and dataloaders for both datasets
         cls.mnist_model = Classifier(dataset="MNIST").to(DEVICE)
         cls.cifar10_model = Classifier(dataset="CIFAR10").to(DEVICE)
         
         cls.mnist_train, cls.mnist_test = get_mnist_dataloaders(batch_size=1000)
         cls.cifar10_train, cls.cifar10_test = get_cifar10_dataloaders(batch_size=1000)
-        
-        # Create test output directory
-        cls.output_dir = Path(__file__).parent.parent.parent / 'test_outputs'
+
+        cls.output_dir = Path(__file__).parent.parent.parent / 'output'
         cls.output_dir.mkdir(exist_ok=True)
 
     def test_metrics_calculations(self):
