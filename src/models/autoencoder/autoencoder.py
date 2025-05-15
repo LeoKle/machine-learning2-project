@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class autoencoder(nn.Module):
+class Autoencoder(nn.Module):
     def __init__(self, dataset_type="MNIST", drop_prob=0.0):
         super().__init__()
 
