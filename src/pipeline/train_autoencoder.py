@@ -21,7 +21,6 @@ class AutoencoderTrainingPipline:
         optimizer: torch.optim.Optimizer,
         save_path: Union[str, Path] = "results",
         drop_prob: float = 0.0,
-        dataset_type: str = "MNIST",
         epochs: int = 10,
 
 
@@ -29,7 +28,6 @@ class AutoencoderTrainingPipline:
         ):
         
         self.epochs = epochs
-        self.dataset_type = dataset_type
         self.drop_prob = drop_prob
         self.dataloader_train = dataloader_train
         self.dataloader_test = dataloader_test
