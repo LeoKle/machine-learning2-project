@@ -16,6 +16,8 @@ class TestAutoencoderPipeline(unittest.TestCase):
 
         cls.loss_function = nn.MSELoss()
         cls.optimizer = torch.optim.Adam(cls.model.parameters(), lr=0.001)
+        cls.dataloader_train, cls.dataloader_test = get_mnist_dataloaders()
+
 
         cls.pipeline = AutoencoderTrainingPipline(
             dataloader_train=cls.dataloader_train,
