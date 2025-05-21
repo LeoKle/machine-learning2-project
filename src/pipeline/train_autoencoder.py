@@ -11,6 +11,8 @@ from typing import Union
 
 
 
+
+
 class AutoencoderTrainingPipline:
     def __init__(
         self,
@@ -22,6 +24,7 @@ class AutoencoderTrainingPipline:
         save_path: Union[str, Path] = "results",
         drop_prob: float = 0.0,
         epochs: int = 10,
+        dataset_type: str = "MNIST",
 
 
         
@@ -39,13 +42,10 @@ class AutoencoderTrainingPipline:
         self.save_path = Path(save_path)
         self.save_path.mkdir(parents=True, exist_ok=True)
 
-
-
-        self.current_epoch = 0
-
         self.last_inputs = None
         self.last_reconstructions = None
         self.last_latents = None
+        self.dataset_type = dataset_type
 
 
 
@@ -73,7 +73,6 @@ class AutoencoderTrainingPipline:
 
 
     def train_epoch(self, batch: torch.Tensor) -> float:
-        self.model.train()
         self.optimizer.zero_grad()
 
         batch = batch.to(DEVICE)
@@ -105,8 +104,17 @@ class AutoencoderTrainingPipline:
         Plotter.show_image(self.last_reconstructions[0], self.save_path / f"{self.dataset_type}_reconstruction.png")
 
         # Speichere latente Repräsentationen
-        torch.save(self.last_latents, self.save_path / f"{self.dataset_type}_latent.pt")
-        print(f"[INFO] Rekonstruktion und Latents gespeichert in: {self.save_path}")
+        #torch.save(self.last_latents, self.save_path / f"{self.dataset_type}_latent.pt")
+        #print(f"[INFO] Rekonstruktion und Latents gespeichert in: {self.save_path}")
+
+
+        # Speichere das gesamte Encodermodel, samt Struktur
+        torch.save(self.model.encoder, self.save_path / f"{self.dataset_type}_encoder_full.pt")
+
+        # Sicherere Alternative – speichert nur die Gewichte
+        torch.save(self.model.encoder.state_dict(), self.save_path / f"{self.dataset_type}_encoder_weights.pth")
+
+
 
     def _save_loss_plot(self, losses):
         from classes.tracker import DataDict  # Lokaler Import, falls DataDict verwendet wird
