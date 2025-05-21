@@ -35,9 +35,17 @@ class Autoencoder(nn.Module):
             nn.Sigmoid()  # Werte auf [0,1] für Bilder
         )
 
-    def forward(self, x):
+    def encode(self, x):
         x = self.drop(x)
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
+        return self.encoder(x)
+
+    def decode(self, z):
+        return self.decoder(z)
+
+    def forward(self, x):
+        z = self.encode(x)
+        decoded = self.decode(z)
         decoded = F.interpolate(decoded, size=(self.img_size, self.img_size), mode='bilinear', align_corners=False)
         return decoded
+
+
