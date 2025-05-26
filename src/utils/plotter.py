@@ -45,7 +45,8 @@ class Plotter:
         fig, ax = plt.subplots()
 
         # remove epochs from data
-        metrics.pop("epoch")
+        if "epoch" in metrics:
+            metrics.pop("epoch")
 
         for metric, values in metrics.items():
             ax.plot(values, label=metric)
