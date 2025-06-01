@@ -103,7 +103,7 @@ class GanTrainingPipeline:
                 fake_preds = []
                 fake_targets = []
 
-                for _, (x, y) in enumerate(self.dataloader_test):
+                for _, (x, _) in enumerate(self.dataloader_test):
                     x = x.to(DEVICE)
                     real_out = self.discriminator(x)
                     real_preds.extend((real_out > 0.5).float().cpu())
@@ -132,5 +132,5 @@ class GanTrainingPipeline:
                     generator_output[0], output_file_name=f"output/gan_{epoch}.png"
                 )
                 Plotter.show_image(
-                    generator_output[0], output_file_name=f"output/#latest.png"
+                    generator_output[0], output_file_name="output/#latest.png"
                 )
