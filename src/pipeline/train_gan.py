@@ -120,17 +120,21 @@ class GanTrainingPipeline:
                     fake_preds.extend((fake_out > 0.5).float().cpu())
                     fake_targets.extend(torch.zeros_like(fake_out).cpu())
 
+                    self.metrics.update_fid(fake_imgs, real=False)
+                    self.metrics.update_fid(x, real=True)
+
                 for _ in range(0, self.is_image_count, self.is_batch_size):
                     z = torch.randn(
                         self.is_batch_size, self.generator.latent_dim, device=DEVICE
                     )
                     fake_imgs = self.generator(z)
                     # sum IS score:
-                    self.metrics.update(fake_imgs)
+                    self.metrics.update_is(fake_imgs)
 
                 # Compute Inception Score
-                mean, std = self.metrics.compute()
+                mean, std, fid_score = self.metrics.compute()
                 print(f"Inception Score: {mean:.4f} ± {std:.4f}")
+                print(f"FID Score: {fid_score:.4f}")
 
                 preds = torch.cat(real_preds + fake_preds)
                 targets = torch.cat(real_targets + fake_targets)
