@@ -3,6 +3,7 @@ import torch.nn as nn
 
 from utils.device import DEVICE
 from utils.plotter import Plotter
+from metrics.metrics_gan import GanMetrics
 
 
 class GanTrainingPipeline:
@@ -27,6 +28,9 @@ class GanTrainingPipeline:
         self.loss_function_generator = loss_function_generator
         self.optimizer_discriminator = optimizer_discriminator
         self.optimizer_generator = optimizer_generator
+        self.metrics = GanMetrics()
+        self.is_image_count = 5000  # Number of images to compute Inception Score
+        self.is_batch_size = 100  # Batch size for generating images for Inception Score
 
     def train_discriminator(self, batch: torch.Tensor):
         self.discriminator.zero_grad()
@@ -79,6 +83,7 @@ class GanTrainingPipeline:
             print("Training epoch", epoch)
             self.generator.train()
             self.discriminator.train()
+            self.metrics.reset()
 
             self.generator_loss = []
             self.discriminator_loss = []
@@ -114,6 +119,18 @@ class GanTrainingPipeline:
                     fake_out = self.discriminator(fake_imgs)
                     fake_preds.extend((fake_out > 0.5).float().cpu())
                     fake_targets.extend(torch.zeros_like(fake_out).cpu())
+
+                for _ in range(0, self.is_image_count, self.is_batch_size):
+                    z = torch.randn(
+                        self.is_batch_size, self.generator.latent_dim, device=DEVICE
+                    )
+                    fake_imgs = self.generator(z)
+                    # sum IS score:
+                    self.metrics.update(fake_imgs)
+
+                # Compute Inception Score
+                mean, std = self.metrics.compute()
+                print(f"Inception Score: {mean:.4f} ± {std:.4f}")
 
                 preds = torch.cat(real_preds + fake_preds)
                 targets = torch.cat(real_targets + fake_targets)
