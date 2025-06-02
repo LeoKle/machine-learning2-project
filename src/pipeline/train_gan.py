@@ -78,8 +78,8 @@ class GanTrainingPipeline:
         loss.backward()
         self.optimizer_generator.step()
 
-    def train(self, epoch):
-        for epoch in range(1, epoch + 1):
+    def train(self, epoch_count):
+        for epoch in range(1, epoch_count + 1):
             print("Training epoch", epoch)
             self.generator.train()
             self.discriminator.train()
