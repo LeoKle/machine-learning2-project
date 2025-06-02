@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+from classes.tracker import Tracker
 from utils.device import DEVICE
 from utils.plotter import Plotter
 from metrics.metrics_gan import GanMetrics
@@ -28,9 +29,12 @@ class GanTrainingPipeline:
         self.loss_function_generator = loss_function_generator
         self.optimizer_discriminator = optimizer_discriminator
         self.optimizer_generator = optimizer_generator
+
         self.metrics = GanMetrics()
         self.is_image_count = 5000  # Number of images to compute Inception Score
         self.is_batch_size = 100  # Batch size for generating images for Inception Score
+
+        self.tracker = Tracker()
 
     def train_discriminator(self, batch: torch.Tensor):
         self.discriminator.zero_grad()
@@ -95,6 +99,9 @@ class GanTrainingPipeline:
             generator_loss = torch.tensor(self.generator_loss).mean()
             discriminator_loss = torch.tensor(self.discriminator_loss).mean()
 
+            self.tracker.track("generator_loss", generator_loss.item(), epoch)
+            self.tracker.track("discriminator_loss", discriminator_loss.item(), epoch)
+
             print(f"Generator Loss: {generator_loss}")
             print(f"Discriminator Loss: {discriminator_loss}")
 
@@ -135,12 +142,16 @@ class GanTrainingPipeline:
                 mean, std, fid_score = self.metrics.compute()
                 print(f"Inception Score: {mean:.4f} ± {std:.4f}")
                 print(f"FID Score: {fid_score:.4f}")
+                self.tracker.track("is_mean", mean, epoch)
+                self.tracker.track("is_std", std, epoch)
+                self.tracker.track("fid_score", fid_score, epoch)
 
                 preds = torch.cat(real_preds + fake_preds)
                 targets = torch.cat(real_targets + fake_targets)
 
                 accuracy = (preds == targets).float().mean().item()
                 print(f"Discriminator accuracy on test set: {accuracy:.4f}")
+                self.tracker.track("accuracy", accuracy, epoch)
 
                 image_count = 1
                 latent_tensor = torch.randn(image_count, self.generator.latent_dim).to(
@@ -155,3 +166,5 @@ class GanTrainingPipeline:
                 Plotter.show_image(
                     generator_output[0], output_file_name="output/#latest.png"
                 )
+
+        print(self.tracker.get_metrics())
