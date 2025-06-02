@@ -13,7 +13,8 @@ class GanMetrics:
         self.is_image_count = 0
 
         self.fid = FrechetInceptionDistance(normalize=True).to(self.device)
-        self.fid_image_count = 0
+        self.fid_image_count_real = 0
+        self.fid_image_count_fake = 0
 
     def __preprocess_images(self, images: torch.Tensor):
         if images.shape[1] == 1:
@@ -31,11 +32,13 @@ class GanMetrics:
         self.is_image_count += images.shape[0]
 
     def update_fid(self, images: torch.Tensor, real: bool):
+        images = self.__preprocess_images(images)
+
         self.fid.update(images.to(self.device), real=real)
         if real:
-            self.num_images_fid_real += images.size(0)
+            self.fid_image_count_real += images.size(0)
         else:
-            self.num_images_fid_fake += images.size(0)
+            self.fid_image_count_fake += images.size(0)
 
     def compute(self):
         mean_std_tensor = self.inception_score.compute()
@@ -43,7 +46,9 @@ class GanMetrics:
 
         fid_score = self.fid.compute().item()
         print(f"Inception Score on {self.is_image_count}: {mean:.4f} ± {std:.4f}")
-        print(f"FID Score on {self.fid_image_count}: {fid_score:.4f}")
+        print(
+            f"FID Score on {self.fid_image_count_real + self.fid_image_count_fake}: {fid_score:.4f}"
+        )
 
         return mean, std, fid_score
 
@@ -52,4 +57,5 @@ class GanMetrics:
         self.is_image_count = 0
 
         self.fid.reset()
-        self.fid_image_count = 0
+        self.fid_image_count_real = 0
+        self.fid_image_count_fake = 0
