@@ -153,7 +153,7 @@ class GanTrainingPipeline:
                 print(f"Discriminator accuracy on test set: {accuracy:.4f}")
                 self.tracker.track("accuracy", accuracy, epoch)
 
-                image_count = 1
+                image_count = 10
                 latent_tensor = torch.randn(image_count, self.generator.latent_dim).to(
                     DEVICE
                 )
@@ -164,7 +164,7 @@ class GanTrainingPipeline:
                     generator_output[0], output_file_name=f"output/gan_{epoch}.png"
                 )
                 Plotter.show_image(
-                    generator_output[0], output_file_name="output/#latest.png"
+                    generator_output, output_file_name="output/#latest.png"
                 )
 
         print(self.tracker.get_metrics())
