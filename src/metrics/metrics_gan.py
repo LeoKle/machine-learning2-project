@@ -16,6 +16,10 @@ class GanMetrics:
         self.fid_image_count_real = 0
         self.fid_image_count_fake = 0
 
+        self.__last_inception_score = 0
+        self.__last_inception_score_std = 0
+        self.__last_fid_score = 0
+
     def __preprocess_images(self, images: torch.Tensor):
         if images.shape[1] == 1:
             images = images.repeat(1, 3, 1, 1)  # [B, 1, H, W] → [B, 3, H, W]
@@ -43,8 +47,11 @@ class GanMetrics:
     def compute(self):
         mean_std_tensor = self.inception_score.compute()
         mean, std = mean_std_tensor[0].item(), mean_std_tensor[1].item()
+        self.__last_inception_score = mean
+        self.__last_inception_score_std = std
 
         fid_score = self.fid.compute().item()
+        self.__last_fid_score = fid_score
         print(f"Inception Score on {self.is_image_count}: {mean:.4f} ± {std:.4f}")
         print(
             f"FID Score on {self.fid_image_count_real + self.fid_image_count_fake}: {fid_score:.4f}"
@@ -59,3 +66,9 @@ class GanMetrics:
         self.fid.reset()
         self.fid_image_count_real = 0
         self.fid_image_count_fake = 0
+
+    def get_last_inception_score(self):
+        return self.__last_inception_score, self.__last_inception_score_std
+
+    def get_last_fid_score(self):
+        return self.__last_fid_score
