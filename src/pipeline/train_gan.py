@@ -40,8 +40,6 @@ class GanTrainingPipeline:
         self.discriminator.zero_grad()
         batch_size = batch.shape[0]
 
-        batch = batch.to(DEVICE)
-
         # train discriminator on real data
         label_real = torch.ones(batch_size, 1, device=DEVICE) * 0.9
 
