@@ -4,6 +4,7 @@ import torch.nn as nn
 class Classifier(nn.Module):
     def __init__(self, dataset: Literal["MNIST", "CIFAR10"] = "MNIST"):
         super().__init__()
+        self.dataset = dataset
         
         if dataset == "MNIST":
             input_size = 1 * 28 * 28 
