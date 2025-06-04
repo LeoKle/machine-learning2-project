@@ -70,8 +70,10 @@ class GanTrainingPipeline:
         self.generator.zero_grad()
         batch_size = batch.shape[0]
 
-        latent_tensor = torch.randn(batch_size, self.generator.latent_dim).to(DEVICE)
-        label_real = torch.ones(batch_size, 1).to(DEVICE)
+        latent_tensor = torch.randn(
+            batch_size, self.generator.latent_dim, device=DEVICE
+        )
+        label_real = torch.ones(batch_size, 1, device=DEVICE)
 
         generator_output = self.generator(latent_tensor)
         discriminator_output = self.discriminator(generator_output)
@@ -93,6 +95,7 @@ class GanTrainingPipeline:
             self.discriminator_loss = []
 
             for _, (x, _) in enumerate(self.dataloader_train):
+                x = x.to(DEVICE)
                 self.train_generator(x)
                 self.train_discriminator(x)
 
@@ -154,8 +157,8 @@ class GanTrainingPipeline:
                 self.tracker.track("accuracy", accuracy, epoch)
 
                 image_count = 10
-                latent_tensor = torch.randn(image_count, self.generator.latent_dim).to(
-                    DEVICE
+                latent_tensor = torch.randn(
+                    image_count, self.generator.latent_dim, device=DEVICE
                 )
 
                 generator_output = self.generator(latent_tensor)
