@@ -15,8 +15,6 @@ class Plotter:
         """displays / saves a MNIST / CIFAR10 tensor as image"""
         data = data.cpu()
 
-        fig = plt.figure()
-
         if data.ndim == 3:
             # Make it a batch of 1 image
             data = data.unsqueeze(0)  # [1, C, H, W]
