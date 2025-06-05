@@ -7,7 +7,9 @@ from utils.device import DEVICE
 from utils.plotter import Plotter
 from tqdm import tqdm
 from typing import Union
-
+from torchvision.utils import make_grid
+import torchvision.transforms.functional as TF
+from PIL import Image
 
 
 
@@ -84,9 +86,13 @@ class AutoencoderTrainingPipline:
 
         self.tracker.track("train_loss", loss.item(), self.current_epoch)
         return loss.item()
-    
+   
+
     def evaluate_and_save(self):
         self.model.eval()
+
+        all_inputs = []
+        all_recons = []
 
         with torch.no_grad():
             for batch, _ in self.dataloader_test:
@@ -94,30 +100,37 @@ class AutoencoderTrainingPipline:
                 latents = self.model.encoder(batch)
                 reconstructions = self.model.decoder(latents)
 
-                self.last_inputs = batch.cpu()
-                self.last_reconstructions = reconstructions.cpu()
-                self.last_latents = latents.cpu()
-                break
+                all_inputs.append(batch.cpu())
+                all_recons.append(reconstructions.cpu())
 
-        # Speichere Original & Rekonstruktion
-        Plotter.show_image(self.last_inputs[0], self.save_path / f"{self.dataset_type}_original.png")
-        Plotter.show_image(self.last_reconstructions[0], self.save_path / f"{self.dataset_type}_reconstruction.png")
+        # Alle Batches zu einem Tensor zusammenfügen
+        all_inputs = torch.cat(all_inputs, dim=0)
+        all_recons = torch.cat(all_recons, dim=0)
 
-        # Speichere latente Repräsentationen
-        #torch.save(self.last_latents, self.save_path / f"{self.dataset_type}_latent.pt")
-        #print(f"[INFO] Rekonstruktion und Latents gespeichert in: {self.save_path}")
+        # Optional: Nur die ersten 32 Beispiele anzeigen
+        num_examples = min(32, all_inputs.size(0))
+        inputs_subset = all_inputs[:num_examples]
+        recons_subset = all_recons[:num_examples]
 
+        # Grid erstellen und speichern
+        self._save_image_grid(inputs_subset, self.save_path / f"{self.dataset_type}_originals_grid.png")
+        self._save_image_grid(recons_subset, self.save_path / f"{self.dataset_type}_reconstructions_grid.png")
 
-        # Speichere das gesamte Encodermodel, samt Struktur
+        # Latents (falls nötig)
+        self.last_latents = self.model.encoder(inputs_subset.to(DEVICE)).cpu()
+
+        # Speichern des Encoders
         torch.save(self.model.encoder, self.save_path / f"{self.dataset_type}_encoder_full.pt")
-
-        # Sicherere Alternative – speichert nur die Gewichte
         torch.save(self.model.encoder.state_dict(), self.save_path / f"{self.dataset_type}_encoder_weights.pth")
 
+    def _save_image_grid(self, images: torch.Tensor, path: Path, nrow: int = 8):
+        grid = make_grid(images, nrow=nrow, normalize=True, pad_value=1)
+        img = TF.to_pil_image(grid)
+        img.save(path)
 
 
     def _save_loss_plot(self, losses):
-        from classes.tracker import DataDict  # Lokaler Import, falls DataDict verwendet wird
+        from classes.tracker import DataDict 
 
         loss_dict: DataDict = {
             "epochs": list(range(1, len(losses) + 1)),
