@@ -1,29 +1,17 @@
-from typing import Literal
 import torch.nn as nn
 
 class Classifier(nn.Module):
-    def __init__(self, dataset: Literal["MNIST", "CIFAR10"] = "MNIST"):
+    def __init__(self, input_size: int, num_classes: int = 10):
         super().__init__()
-        self.dataset = dataset
-        
-        if dataset == "MNIST":
-            input_size = 1 * 28 * 28 
-            hidden_size = 512 # zu groß??
-        elif dataset == "CIFAR10":
-            input_size = 3 * 32 * 32
-            hidden_size = 1024  # zu groß??
-        else:
-            raise ValueError("Unsupported dataset: choose 'MNIST' or 'CIFAR10'")
-        
         self.main = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
+            nn.Linear(input_size, 256),
             nn.ReLU(True),
-            nn.Linear(hidden_size, hidden_size // 2),
+            nn.Linear(256, 128),
             nn.ReLU(True),
-            nn.Linear(hidden_size // 2, 10),
+            nn.Linear(128, num_classes),
             nn.LogSoftmax(dim=1)
         )
 
     def forward(self, x):
-        x = x.view(x.size(0), -1) 
+        x = x.view(x.size(0), -1)
         return self.main(x)
