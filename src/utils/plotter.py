@@ -60,3 +60,37 @@ class Plotter:
         fig.tight_layout()
         fig.savefig(output_file_name)
         plt.show()
+
+    @staticmethod
+    def plot_loss_progression(metrics: DataDict, epochs: list[int], output_file_name: Path):
+        train_losses = metrics.get("train_loss", [])
+        test_losses = metrics.get("test_loss", [])
+
+        for e in epochs:
+            plt.figure()
+            plt.plot(range(1, e + 1), train_losses[:e], 'r-', label='Training loss')
+            plt.plot(range(1, e + 1), test_losses[:e], 'b-', label='Validation loss')
+            plt.xlabel("Epoch")
+            plt.ylabel("Loss")
+            plt.title(f"Training vs Validation Loss (1 to {e})")
+            plt.legend()
+            plt.grid(True)
+            output_file = output_file_name / f"loss_epochs_up_to_{e}.png"
+            plt.savefig(output_file)
+            plt.close()
+
+    @staticmethod
+    def plot_accuracy(accuracy_values, output_file_name: Path):
+        import matplotlib.pyplot as plt
+
+        epochs = list(range(1, len(accuracy_values) + 1))
+
+        plt.figure()
+        plt.plot(epochs, accuracy_values, 'g-', label='Validation Accuracy')
+        plt.xlabel("Epoch")
+        plt.ylabel("Accuracy (%)")
+        plt.title("Validation Accuracy (1 to {})".format(len(accuracy_values)))
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(output_file_name)
+        plt.close()
