@@ -2,56 +2,36 @@ import torch.nn as nn
 import torch
 
 class EncoderClassifier(nn.Module):
-    def __init__(self, encoder, classifier):
+    def __init__(self, encoder, classifier=None, num_classes=10, fine_tune_encoder=False):
         super().__init__()
         self.encoder = encoder
-        self.classifier = classifier
-        
-        # Determine input channels from classifier's dataset
-        target_channels = 3 if classifier.dataset == "CIFAR10" else 1
-        
-        # Determine encoder's input channels from first Conv2d layer
-        first_conv = None
-        for module in encoder.modules():
-            if isinstance(module, nn.Conv2d):
-                first_conv = module
-                break
-        
-        if first_conv is None:
-            raise ValueError("Encoder must contain at least one Conv2d layer")
-            
-        encoder_channels = first_conv.in_channels
-        self.needs_channel_adapter = (encoder_channels != target_channels)
-        
-        if self.needs_channel_adapter:
-            self.channel_adapter = nn.Conv2d(
-                in_channels=target_channels,
-                out_channels=encoder_channels,
-                kernel_size=1
-            )
-        
-        self.dim_adapter = nn.Linear(self._get_encoder_output_size(),
-                                     784 if classifier.dataset == "MNIST" else 3072)
-        
 
-        for param in self.encoder.parameters():
-            param.requires_grad = False
-    
+        if not fine_tune_encoder:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+
+        # Get encoder output size
+        self._encoder_output_size = self._get_encoder_output_size()
+
+        if classifier is None:
+            self.classifier = nn.Sequential(
+                nn.Linear(self._encoder_output_size, 256),
+                nn.ReLU(True),
+                nn.Linear(256, 128),
+                nn.ReLU(True),
+                nn.Linear(128, num_classes),
+                nn.LogSoftmax(dim=1))
+        else:
+            self.classifier = classifier
+
     def _get_encoder_output_size(self):
         with torch.no_grad():
-            dummy_input = torch.randn(1, 1 if self.classifier.dataset == "MNIST" else 3, 
-                                      28 if self.classifier.dataset == "MNIST" else 32, 
-                                      28 if self.classifier.dataset == "MNIST" else 32)
-            if self.needs_channel_adapter:
-                dummy_input = self.channel_adapter(dummy_input)
-            dummy_output = self.encoder(dummy_input)
-            return dummy_output.view(-1).shape[0]
-    
+            in_channels = next(self.encoder.parameters()).shape[1]
+            dummy_input = torch.randn(1, in_channels, 28, 28)  # default for MNIST
+            output = self.encoder(dummy_input)
+            return output.view(1, -1).size(1)
+
     def forward(self, x):
-        if self.needs_channel_adapter:
-            x = self.channel_adapter(x)
-        
         features = self.encoder(x)
         features = features.view(features.size(0), -1)
-        features = self.dim_adapter(features) 
         return self.classifier(features)
