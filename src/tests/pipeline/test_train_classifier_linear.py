@@ -68,6 +68,7 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
                     print(f"Stopping after 10 extra epochs. Final epoch: {epoch}")
                     torch.save(pipeline.model.state_dict(), model_save_dir / f"classifier_final_epoch_{epoch}.pth")
                     Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / f"final_metrics_epoch_{epoch}.png")
+                    Plotter.plot_loss_progression(pipeline.tracker.get_metrics(), list(range(1, epoch + 1)), plot_save_dir)
                     break
 
             epoch += 1
