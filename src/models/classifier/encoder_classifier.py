@@ -1,8 +1,9 @@
 import torch.nn as nn
 import torch
+from models.classifier.classifier_linear import Classifier
 
 class EncoderClassifier(nn.Module):
-    def __init__(self, encoder, classifier=None, num_classes=10, fine_tune_encoder=False):
+    def __init__(self, encoder, classifier=None, num_classes=10, fine_tune_encoder=True):
         super().__init__()
         self.encoder = encoder
 
@@ -11,20 +12,14 @@ class EncoderClassifier(nn.Module):
                 param.requires_grad = False
 
         # Get encoder output size
-        self._encoder_output_size = self._get_encoder_output_size()
+        self.encoder_output_size = self.get_encoder_output_size()
 
         if classifier is None:
-            self.classifier = nn.Sequential(
-                nn.Linear(self._encoder_output_size, 256),
-                nn.ReLU(True),
-                nn.Linear(256, 128),
-                nn.ReLU(True),
-                nn.Linear(128, num_classes),
-                nn.LogSoftmax(dim=1))
+            self.classifier = Classifier(input_size=self.encoder_output_size, num_classes=num_classes)
         else:
             self.classifier = classifier
 
-    def _get_encoder_output_size(self):
+    def get_encoder_output_size(self):
         with torch.no_grad():
             in_channels = next(self.encoder.parameters()).shape[1]
             dummy_input = torch.randn(1, in_channels, 28, 28)  # default for MNIST
@@ -33,5 +28,4 @@ class EncoderClassifier(nn.Module):
 
     def forward(self, x):
         features = self.encoder(x)
-        features = features.view(features.size(0), -1)
         return self.classifier(features)

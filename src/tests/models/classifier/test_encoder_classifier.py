@@ -1,7 +1,7 @@
 import unittest
 import torch
 from models.autoencoder.autoencoder import Autoencoder
-from models.classifier.classifier import Classifier
+from models.classifier.classifier_linear import Classifier
 from models.classifier.encoder_classifier import EncoderClassifier
 
 class TestEncoderClassifier(unittest.TestCase):

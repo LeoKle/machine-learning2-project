@@ -4,10 +4,9 @@ class Classifier(nn.Module):
     def __init__(self, input_size: int, num_classes: int = 10):
         super().__init__()
         self.main = nn.Sequential(
-            nn.Linear(input_size, 256),
+            nn.Linear(input_size, 128),
             nn.ReLU(True),
-            nn.Linear(256, 128),
-            nn.ReLU(True),
+            nn.Dropout(0.3),
             nn.Linear(128, num_classes),
             nn.LogSoftmax(dim=1)
         )
