@@ -11,7 +11,7 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
         dataset_type = "MNIST"
 
         if dataset_type.upper() == "MNIST":
-            train_loader, test_loader = get_mnist_dataloaders(batch_size=32)
+            train_loader, test_loader = get_mnist_dataloaders(batch_size=64)
             dummy_input = torch.randn(1, 1, 28, 28)
             encoder_path = "resultsAECNN2_MNIST/MNIST_encoder_weights.pth"
         elif dataset_type.upper() == "CIFAR10":
@@ -27,6 +27,11 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
         plot_save_dir = Path(f"output/results_linear_encoded_{dataset_type}_pngs")
         model_save_dir.mkdir(parents=True, exist_ok=True)
         plot_save_dir.mkdir(parents=True, exist_ok=True)
+
+        with open(plot_save_dir / "epoch_metrics.txt", "w") as f:
+            #f.write("Epoch | Train Loss | Test Loss | Test Accuracy\n")
+            f.write("Epoch | Train Loss | Test Loss  | Accuracy | Error Rate | Precision | Recall | Specificity |   NPV  |   FPR  |   FNR  | F1 Score | Fbeta Score\n")
+            #f.write("------|------------|-----------|----------------\n")
 
         test_losses = []
         extra_epochs = 0
@@ -47,9 +52,24 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
             avg_train_loss = total_loss / total_batches
             pipeline.tracker.track("train_loss", avg_train_loss, epoch)
 
-            test_loss, test_accuracy = pipeline.evaluate()
+            test_loss = pipeline.evaluate()
+            metrics = pipeline.tracker.get_metrics()
+            accuracy     = metrics["accuracy"][-1]
+            error_rate   = metrics["error_rate"][-1]
+            precision    = metrics["precision"][-1]
+            recall       = metrics["recall"][-1]
+            specificity  = metrics["specificity"][-1]
+            npv          = metrics["NPV"][-1]
+            fpr          = metrics["FPR"][-1]
+            fnr          = metrics["FNR"][-1]
+            f1_score     = metrics["f1_score"][-1]
+            fbeta_score  = metrics["fbeta_score"][-1]
+            with open(plot_save_dir / "epoch_metrics.txt", "a") as f:
+                f.write(f"{epoch:>5} |  {avg_train_loss:.4f}    |   {test_loss:.4f}   |  {accuracy:.2f}%  |   "
+                        f"{error_rate:.4f}   |  {precision:.4f}   | {recall:.4f} |   {specificity:.4f}    | "
+                        f"{npv:.4f} | {fpr:.4f} | {fnr:.4f} |  {f1_score:.4f}  | {fbeta_score:.4f}\n")
             test_losses.append(test_loss)
-            print(f"[{dataset_type}] Epoch {epoch}: Train Loss = {avg_train_loss:.4f}, Test Loss = {test_loss:.4f}, Test Acc = {test_accuracy:.2f}%")
+            print(f"[{dataset_type}] Epoch {epoch}: Train Loss = {avg_train_loss:.4f}, Test Loss = {test_loss:.4f}, Test Acc = {accuracy:.2f}%")
 
             if epoch % 10 == 0:
                 torch.save(pipeline.model.state_dict(), model_save_dir / f"classifier_epoch_{epoch}.pth")
@@ -59,21 +79,21 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
                     print(f"Test loss increased consecutively. Saving best checkpoint at epoch {epoch}.")
                     torch.save(pipeline.model.state_dict(), model_save_dir / f"best_classifier_epoch_{epoch}.pth")
                     Plotter.plot_loss_progression(pipeline.tracker.get_metrics(), list(range(1, epoch + 1)), plot_save_dir)
-                    extra_epochs = 10
+                    extra_epochs = 3
                     triggered_extra = True
 
             if triggered_extra:
                 extra_epochs -= 1
                 if extra_epochs == 0:
-                    print(f"Stopping after 10 extra epochs. Final epoch: {epoch}")
+                    print(f"Stopping after {extra_epochs} extra epochs. Final epoch: {epoch}")
                     torch.save(pipeline.model.state_dict(), model_save_dir / f"classifier_final_epoch_{epoch}.pth")
-                    Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / f"final_metrics_epoch_{epoch}.png")
                     Plotter.plot_loss_progression(pipeline.tracker.get_metrics(), list(range(1, epoch + 1)), plot_save_dir)
                     break
 
             epoch += 1
 
         Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png")
+        Plotter.plot_accuracy(accuracy_values=pipeline.tracker.get_metrics()["test_accuracy"], output_file_name=plot_save_dir / "classifier_accuracy.png")
 
         for e in [10]:
             self.assertTrue((model_save_dir / f"classifier_epoch_{e}.pth").exists())
