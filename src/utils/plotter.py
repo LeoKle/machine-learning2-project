@@ -2,15 +2,16 @@ from pathlib import Path
 from typing import DefaultDict, List
 from matplotlib import pyplot as plt
 import torch
+import seaborn as sns
+import numpy as np
+from sklearn.metrics import confusion_matrix
 
 from classes.tracker import DataDict
 
 
 class Plotter:
     @staticmethod
-    def show_image(
-        data: torch.Tensor, output_file_name: Path = None, show: bool = False
-    ):
+    def show_image(data: torch.Tensor, output_file_name: Path = None, show: bool = False):
         """displays / saves a MNIST / CIFAR10 tensor as image"""
         data = data.cpu()
 
@@ -81,7 +82,6 @@ class Plotter:
 
     @staticmethod
     def plot_accuracy(accuracy_values, output_file_name: Path):
-        import matplotlib.pyplot as plt
 
         epochs = list(range(1, len(accuracy_values) + 1))
 
@@ -94,3 +94,47 @@ class Plotter:
         plt.grid(True)
         plt.savefig(output_file_name)
         plt.close()
+
+    @staticmethod
+    def plot_confusion_matrix(model, dataloader, device, class_names, title, output_file):
+        model.eval()
+        all_preds = []
+        all_labels = []
+
+        with torch.no_grad():
+            for images, labels in dataloader:
+                images, labels = images.to(device), labels.to(device)
+                outputs = model(images)
+                _, preds = torch.max(outputs, 1)
+                all_preds.extend(preds.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+
+        cm = confusion_matrix(all_labels, all_preds)
+        #cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
+        #sns.heatmap(cm_normalized, annot=True, fmt=".4f", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
+        plt.title(title)
+        plt.xlabel("Predicted Label")
+        plt.ylabel("True Label")
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig(output_file, dpi=300)
+        plt.close()
+
+    @staticmethod
+    def plot_confusion_matrix_mnist(model, dataloader, device, output_file: Path):
+        Plotter.plot_confusion_matrix(
+            model, dataloader, device,
+            class_names=[str(i) for i in range(10)],
+            title="MNIST Confusion Matrix",
+            output_file=output_file)
+
+    @staticmethod
+    def plot_confusion_matrix_cifar10(model, dataloader, device, output_file: Path):
+        Plotter.plot_confusion_matrix(
+            model, dataloader, device,
+            class_names=['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
+            title="CIFAR10 Confusion Matrix", 
+            output_file=output_file)
