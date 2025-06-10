@@ -31,7 +31,8 @@ class Plotter:
                 image = img.squeeze(0).numpy()
                 ax.imshow(image, cmap="gray")
             elif img.shape[0] == 3:
-                image = img.permute(1, 2, 0).numpy()
+                image = (img + 1) / 2  # Normalize to [0, 1] for display
+                image = image.permute(1, 2, 0).numpy()
                 ax.imshow(image)
             else:
                 raise ValueError(f"Unsupported number of channels: {img.shape[0]}")
