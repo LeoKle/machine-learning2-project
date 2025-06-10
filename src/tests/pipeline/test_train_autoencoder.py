@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 
-from data.cifar10_test import get_cifar10_dataloaders
+from data.cifar10 import get_cifar10_dataloaders
 from data.mnist import get_mnist_dataloaders
 from models.autoencoder.autoencoder_CNN2 import AutoencoderCNN2
 from pipeline.train_autoencoder import AutoencoderTrainingPipline
