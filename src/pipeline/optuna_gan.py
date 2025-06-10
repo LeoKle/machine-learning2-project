@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 import optuna
 import torch
@@ -40,7 +41,7 @@ class OptunaStudy:
         lr_disc = trial.suggest_float("lr_disc", 1e-4, 5e-4, log=True)
         beta1 = trial.suggest_float("beta1", 0.45, 0.55)
         beta2 = trial.suggest_float("beta2", 0.99, 0.999)
-        n_epochs = trial.suggest_int("n_epochs", 20, 100)
+        n_epochs = trial.suggest_int("n_epochs", 1, 1)
 
         loss_function_generator = nn.BCELoss()
         loss_function_discriminator = nn.BCELoss()
@@ -81,6 +82,12 @@ class OptunaStudy:
         print(f"Starting training with params: {trial.params}")
 
         pipeline.train(n_epochs)
+
+        os.makedirs(f"output/{self.study.study_name}", exist_ok=True)
+        torch.save(
+            pipeline.generator.state_dict(),
+            f"output/{self.study.study_name}/generator_{trial.number}.pth",
+        )
 
         return pipeline.metrics.get_last_inception_score()[0]
 
