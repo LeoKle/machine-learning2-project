@@ -31,17 +31,23 @@ class OptunaStudy:
 
         self.study = optuna.create_study(
             directions=["maximize"],
-            study_name=f"gan_{self.dataset.lower()}_{generator_model.__name__.lower()}_{discriminator_model.__name__.lower()}",
+            study_name=f"gan_IS_{self.dataset.lower()}_{generator_model.__name__.lower()}_{discriminator_model.__name__.lower()}",
             storage="sqlite:///gan_optuna_study_IS.db",
             load_if_exists=True,
         )
 
+        self.output_dir = f"output/{self.study.study_name}"
+        os.makedirs(self.output_dir, exist_ok=True)
+
     def objective(self, trial: optuna.Trial) -> float:
+        self.trial_dir = self.output_dir + f"/{trial.number}"
+        os.makedirs(self.trial_dir, exist_ok=True)
+
         lr_gen = trial.suggest_float("lr_gen", 1e-4, 5e-4, log=True)
         lr_disc = trial.suggest_float("lr_disc", 1e-4, 5e-4, log=True)
         beta1 = trial.suggest_float("beta1", 0.45, 0.55)
         beta2 = trial.suggest_float("beta2", 0.99, 0.999)
-        n_epochs = trial.suggest_int("n_epochs", 1, 1)
+        n_epochs = trial.suggest_int("n_epochs", 20, 100)
 
         loss_function_generator = nn.BCELoss()
         loss_function_discriminator = nn.BCELoss()
@@ -75,16 +81,16 @@ class OptunaStudy:
             loss_function_generator=loss_function_generator,
             optimizer_discriminator=optimizer_discriminator,
             optimizer_generator=optimizer_generator,
+            output_dir=self.trial_dir,
         )
 
         print(f"Starting training with params: {trial.params}")
 
         pipeline.train(n_epochs)
 
-        os.makedirs(f"output/{self.study.study_name}", exist_ok=True)
         torch.save(
             pipeline.generator.state_dict(),
-            f"output/{self.study.study_name}/generator_{trial.number}.pth",
+            self.trial_dir + "/generator.pth",
         )
 
         return pipeline.metrics.get_last_inception_score()[0]

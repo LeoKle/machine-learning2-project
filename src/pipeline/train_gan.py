@@ -18,6 +18,7 @@ class GanTrainingPipeline:
         loss_function_generator: torch.nn.modules.loss._Loss,
         optimizer_discriminator: torch.optim.Optimizer,
         optimizer_generator: torch.optim.Optimizer,
+        output_dir: str = "output",
     ):
         self.dataloader_train = dataloader_train
         self.dataloader_test = dataloader_test
@@ -35,6 +36,8 @@ class GanTrainingPipeline:
         self.is_batch_size = 100  # Batch size for generating images for Inception Score
 
         self.tracker = Tracker()
+
+        self.output_dir = output_dir
 
     def train_discriminator(self, batch: torch.Tensor):
         self.discriminator.zero_grad()
@@ -93,7 +96,7 @@ class GanTrainingPipeline:
             generator_output = self.generator(latent_tensor)
 
             Plotter.show_image(
-                generator_output, output_file_name=f"output/gan_{epoch}.png"
+                generator_output, output_file_name=self.output_dir + f"/gan_{epoch}.png"
             )
             Plotter.show_image(generator_output, output_file_name="output/#latest.png")
 
