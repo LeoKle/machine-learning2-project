@@ -82,6 +82,21 @@ class GanTrainingPipeline:
         loss.backward()
         self.optimizer_generator.step()
 
+    def show_current_images(self, epoch):
+        with torch.no_grad():
+            self.generator.eval()
+            image_count = 10
+            latent_tensor = torch.randn(
+                image_count, self.generator.latent_dim, device=DEVICE
+            )
+
+            generator_output = self.generator(latent_tensor)
+
+            Plotter.show_image(
+                generator_output, output_file_name=f"output/gan_{epoch}.png"
+            )
+            Plotter.show_image(generator_output, output_file_name="output/#latest.png")
+
     def train(self, epoch_count):
         for epoch in range(1, epoch_count + 1):
             print("Training epoch", epoch)
@@ -106,6 +121,13 @@ class GanTrainingPipeline:
             print(f"Generator Loss: {generator_loss}")
             print(f"Discriminator Loss: {discriminator_loss}")
 
+            self.show_current_images(epoch)
+
+            # only evaluate every 10 epochs or on the last epoch
+            if epoch % 10 != 0 and epoch != epoch_count:
+                continue
+
+            print(f"Evaluating epoch {epoch}...")
             with torch.no_grad():
                 self.generator.eval()
                 self.discriminator.eval()
@@ -153,19 +175,5 @@ class GanTrainingPipeline:
                 accuracy = (preds == targets).float().mean().item()
                 print(f"Discriminator accuracy on test set: {accuracy:.4f}")
                 self.tracker.track("accuracy", accuracy, epoch)
-
-                image_count = 10
-                latent_tensor = torch.randn(
-                    image_count, self.generator.latent_dim, device=DEVICE
-                )
-
-                generator_output = self.generator(latent_tensor)
-
-                Plotter.show_image(
-                    generator_output[0], output_file_name=f"output/gan_{epoch}.png"
-                )
-                Plotter.show_image(
-                    generator_output, output_file_name="output/#latest.png"
-                )
 
         print(self.tracker.get_metrics())
