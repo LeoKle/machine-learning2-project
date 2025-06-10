@@ -21,10 +21,12 @@ class EncoderClassifier(nn.Module):
 
     def get_encoder_output_size(self):
         with torch.no_grad():
-            in_channels = next(self.encoder.parameters()).shape[1]
-            dummy_input = torch.randn(1, in_channels, 28, 28)  # default for MNIST
+            img_channels = getattr(self.encoder, 'img_channels', 1)
+            img_size = getattr(self.encoder, 'img_size', 28 if img_channels == 1 else 32)
+            dummy_input = torch.randn(1, img_channels, img_size, img_size)
             output = self.encoder(dummy_input)
             return output.view(1, -1).size(1)
+
 
     def forward(self, x):
         features = self.encoder(x)
