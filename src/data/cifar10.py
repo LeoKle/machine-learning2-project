@@ -9,6 +9,8 @@ def get_cifar10_dataloaders(batch_size=64, transform=None, root=None, download=T
     transform = transform or transforms.Compose(
         [
             transforms.ToTensor(),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, padding=4),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ]
     )
