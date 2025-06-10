@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 from typing import DefaultDict, List
 from matplotlib import pyplot as plt
@@ -14,21 +15,27 @@ class Plotter:
         """displays / saves a MNIST / CIFAR10 tensor as image"""
         data = data.cpu()
 
-        fig = plt.figure()
-
         if data.ndim == 3:
-            if data.shape[0] == 1:
-                image = data.squeeze(0).numpy()
-                plt.imshow(image, cmap="gray")
-            elif data.shape[0] == 3:
-                image = data.permute(1, 2, 0).numpy()
-                plt.imshow(image)
+            # Make it a batch of 1 image
+            data = data.unsqueeze(0)  # [1, C, H, W]
+
+        num_images = data.shape[0]
+        fig = plt.figure(figsize=(num_images * 2, 2))
+
+        for i in range(num_images):
+            img = data[i]
+            ax = fig.add_subplot(1, num_images, i + 1)
+            ax.axis("off")
+
+            if img.shape[0] == 1:
+                image = img.squeeze(0).numpy()
+                ax.imshow(image, cmap="gray")
+            elif img.shape[0] == 3:
+                image = (img + 1) / 2  # Normalize to [0, 1] for display
+                image = image.permute(1, 2, 0).numpy()
+                ax.imshow(image)
             else:
-                raise ValueError(f"Unsupported number of channels: {data.shape[0]}")
-        elif data.ndim == 2:
-            plt.imshow(data.numpy(), cmap="gray")
-        else:
-            raise ValueError(f"Unsupported tensor shape: {data.shape}")
+                raise ValueError(f"Unsupported number of channels: {img.shape[0]}")
 
         plt.axis("off")
 
