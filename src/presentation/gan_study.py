@@ -1,5 +1,5 @@
-from models.gan.discriminator import Discriminator, DiscriminatorCNN
-from models.gan.generator import Generator, GeneratorCNN
+from models.gan.discriminator import Discriminator
+from models.gan.generator import Generator
 from pipeline.optuna_gan import OptunaStudy
 
 
