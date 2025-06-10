@@ -66,11 +66,9 @@ class OptunaStudy:
             self.generator.parameters(), lr=lr_gen, betas=(beta1, beta2)
         )
 
-        dataloader_train, dataloader_test = get_mnist_dataloaders()
-
         pipeline = GanTrainingPipeline(
-            dataloader_train=dataloader_train,
-            dataloader_test=dataloader_test,
+            dataloader_train=self.dataloader_train,
+            dataloader_test=self.dataloader_test,
             generator=self.generator,
             discriminator=self.discriminator,
             loss_function_discriminator=loss_function_discriminator,
