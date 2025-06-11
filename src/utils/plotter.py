@@ -5,6 +5,7 @@ import torch
 import seaborn as sns
 import numpy as np
 from sklearn.metrics import confusion_matrix
+import random
 
 from classes.tracker import DataDict
 
@@ -138,3 +139,63 @@ class Plotter:
             class_names=['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
             title="CIFAR10 Confusion Matrix", 
             output_file=output_file)
+        
+    @staticmethod
+    def plot_predictions(model, dataloader, dataset_type, device, output_file_name=None, show=False):
+
+        if dataset_type.upper() == "MNIST":
+            class_names = [str(i) for i in range(10)]
+        else:
+            class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+
+        # Collect all images and labels for random selection
+        images_list, labels_list = [], []
+        for images, labels in dataloader:
+            images_list.append(images)
+            labels_list.append(labels)
+        images = torch.cat(images_list, dim=0)
+        labels = torch.cat(labels_list, dim=0)
+
+        idxs = random.sample(range(images.shape[0]), 9)
+        selected_images = images[idxs]
+        selected_labels = labels[idxs]
+
+        # Get predictions for selected images
+        model.eval()
+        with torch.no_grad():
+            imgs_on_device = selected_images.to(device)
+            outputs = model(imgs_on_device)
+            _, preds = torch.max(outputs, 1)
+            preds = preds.cpu()
+
+        def unnormalize(img):
+            if dataset_type.upper() == "MNIST":
+                return img * 0.5 + 0.5
+            else:
+                mean = torch.tensor([0.4914, 0.4822, 0.4465]).view(3, 1, 1)
+                std = torch.tensor([0.2023, 0.1994, 0.2010]).view(3, 1, 1)
+                return img * std + mean
+
+        fig, axes = plt.subplots(3, 3, figsize=(8, 8))
+        axes = axes.flatten()
+
+        for i, ax in enumerate(axes):
+            img = unnormalize(selected_images[i])
+            if img.shape[0] == 1:
+                ax.imshow(img.squeeze(0).numpy(), cmap="gray")
+            else:
+                ax.imshow(img.permute(1, 2, 0).numpy().clip(0, 1))
+            true_lbl = class_names[selected_labels[i].item()]
+            pred_lbl = class_names[preds[i].item()]
+            correct = (selected_labels[i].item() == preds[i].item())
+            color = "green" if correct else "red"
+            ax.set_title(f"Label: {true_lbl}\nPred: {pred_lbl}", color=color, fontsize=11)
+            ax.axis("off")
+
+        fig.suptitle(f"Random {dataset_type} Images", fontsize=14)
+        plt.tight_layout()
+        if output_file_name:
+            plt.savefig(output_file_name, dpi=200)
+        if show:
+            plt.show()
+        plt.close(fig)
