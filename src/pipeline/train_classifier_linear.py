@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 from models.autoencoder.autoencoder_CNN2 import AutoencoderCNN2
-from models.classifier.classifier_linear import Classifier
+from models.classifier.classifier_linear import Classifier, ClassifierDeep
+from models.classifier.classifier_resnet import ClassifierResNet, ClassifierLinear
 from models.classifier.encoder_classifier import EncoderClassifier
 from utils.device import DEVICE
 from classes.tracker import Tracker
@@ -28,6 +30,8 @@ class ClassifierTrainingPipeline:
             self.optimizer.zero_grad()
             batch, labels = batch.to(DEVICE), labels.to(DEVICE)
             outputs = self.model(batch)
+            labels_onehot = F.one_hot(labels, num_classes=outputs.shape[1]).float()
+            # loss = self.loss_function(outputs, labels_onehot)
             loss = self.loss_function(outputs, labels)
             loss.backward()
             self.optimizer.step()
@@ -41,7 +45,7 @@ class ClassifierTrainingPipeline:
     def _write_metrics_header(self):
         if self.metrics_file:
             with open(self.metrics_file, "w") as f:
-                f.write("Epoch | Train Loss | Test Loss | Accuracy | Error Rate | Precision | Recall | Specificity | NPV | FPR | FNR | F1 Score | Fbeta Score\n")
+                f.write("Epoch | Train Loss | Test Loss  | Accuracy | Error Rate | Precision | Recall | Specificity |  NPV   |  FPR   |  FNR   | F1 Score | Fbeta Score\n")
 
     def _append_metrics_row(self, epoch, avg_train_loss, test_loss, metrics):
         if self.metrics_file:
@@ -92,11 +96,11 @@ class ClassifierTrainingPipeline:
             if model_save_dir is not None and epoch % save_every == 0:
                 torch.save(self.model.state_dict(), model_save_dir / f"classifier_epoch_{epoch}.pth")
 
-            if not triggered_extra and epoch >= 3:
-                if accuracy[-1] > accuracy[-2] > accuracy[-3]:
-                    best_epoch = epoch - 2
+            if not triggered_extra and epoch >= 4:
+                if test_losses[-1] > test_losses[-2] > test_losses[-3] > test_losses[-4]:
+                    best_epoch = epoch - 3
                     best_model_path = model_save_dir / f"best_classifier_epoch_{best_epoch}.pth"
-                    print(f"Early stopping: Test loss increased 3x. Saving best checkpoint at epoch {best_epoch}.")
+                    print(f"Early stopping: Test loss increased. Saving best checkpoint at epoch {best_epoch}.")
                     torch.save(self.model.state_dict(), best_model_path)
                     if plot_callback:
                         plot_callback(self.tracker.get_metrics(), epoch)
@@ -128,6 +132,8 @@ class ClassifierTrainingPipeline:
             for batch, labels in self.dataloader_test:
                 batch, labels = batch.to(DEVICE), labels.to(DEVICE)
                 outputs = self.model(batch)
+                labels_onehot = F.one_hot(labels, num_classes=outputs.shape[1]).float()
+                # loss = self.loss_function(outputs, labels_onehot)
                 loss = self.loss_function(outputs, labels)
                 test_loss += loss.item()
 
@@ -162,8 +168,12 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
     in_channels = dummy_input.shape[1]
     if in_channels == 1:
         dataset_type = "MNIST"
+        img_channels = 1
+        img_size = 28
     elif in_channels == 3:
         dataset_type = "CIFAR10"
+        img_channels = 3
+        img_size = 32
     else:
         raise ValueError("Unsupported input shape. Expecting channels = 1 or 3.")
 
@@ -175,10 +185,10 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
         encoder_output = encoder(dummy_input.to(DEVICE))
         encoder_output_size = encoder_output.view(1, -1).size(1)
 
-    classifier = Classifier(input_size=encoder_output_size)
-    combined_model = EncoderClassifier(encoder, classifier).to(DEVICE)
+    classifier = ClassifierResNet(input_size=encoder_output_size)
+    combined_model = EncoderClassifier(encoder, classifier, img_channels = img_channels, img_size = img_size).to(DEVICE)
 
-    optimizer = optim.Adam(combined_model.parameters(), lr=0.001)
+    optimizer = optim.Adam(combined_model.parameters(), lr=0.0001, betas=(0.9, 0.999))
     loss_fn = nn.NLLLoss()
 
     pipeline = ClassifierTrainingPipeline(

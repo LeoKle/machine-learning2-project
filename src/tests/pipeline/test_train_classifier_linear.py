@@ -50,6 +50,9 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
             output_file_name=plot_save_dir / "classifier_accuracy.png"
         )
 
+        Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_1.png", show=False)
+        Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_2.png", show=False)
+
         if dataset_type == "MNIST":
             Plotter.plot_confusion_matrix_mnist(model, test_loader, DEVICE, plot_save_dir / "mnist_confusion_matrix.png")
         elif dataset_type == "CIFAR10":
