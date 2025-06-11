@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 class Classifier(nn.Module):
     def __init__(self, input_size: int, num_classes: int = 10):
         super().__init__()
@@ -8,24 +9,22 @@ class Classifier(nn.Module):
             nn.BatchNorm1d(256),
             nn.LeakyReLU(0.1),
             nn.Dropout(0.4),
-
             nn.Linear(256, 128),
             nn.BatchNorm1d(128),
             nn.LeakyReLU(0.1),
             nn.Dropout(0.3),
-
             nn.Linear(128, 64),
             nn.LeakyReLU(0.1),
             nn.Dropout(0.2),
-
             nn.Linear(64, num_classes),
-            nn.LogSoftmax(dim=1)
+            nn.LogSoftmax(dim=1),
         )
 
     def forward(self, x):
         x = x.view(x.size(0), -1)
         return self.main(x)
-    
+
+
 def get_activation(name):
     if name == "relu":
         return nn.ReLU(inplace=True)
@@ -37,7 +36,8 @@ def get_activation(name):
         return nn.Sigmoid()
     else:
         raise ValueError(f"Unsupported activation: {name}")
-    
+
+
 class ClassifierDeep(nn.Module):
     def __init__(self, input_size: int, num_classes: int = 10, activation="leaky_relu"):
         super().__init__()
@@ -47,26 +47,21 @@ class ClassifierDeep(nn.Module):
             nn.BatchNorm1d(256),
             act,
             nn.Dropout(0.4),
-
             nn.Linear(256, 128),
             nn.BatchNorm1d(128),
             act,
             nn.Dropout(0.3),
-
             nn.Linear(128, 64),
             act,
             nn.Dropout(0.2),
-
             nn.Linear(64, 32),
             act,
             nn.Dropout(0.2),
-
             nn.Linear(32, 32),
             act,
             nn.Dropout(0.2),
-
             nn.Linear(32, num_classes),
-            nn.LogSoftmax(dim=1)
+            nn.LogSoftmax(dim=1),
         )
 
     def forward(self, x):

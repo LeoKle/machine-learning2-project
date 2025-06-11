@@ -7,6 +7,7 @@ from data.mnist import get_mnist_dataloaders
 from data.cifar10 import get_cifar10_dataloaders
 from utils.device import DEVICE
 
+
 class TestLinearOnEncodedTraining(unittest.TestCase):
     def test_training_and_saving(self):
         dataset_type = "MNIST"
@@ -22,7 +23,9 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
         else:
             raise ValueError("Unsupported dataset_type. Use 'MNIST' or 'CIFAR10'.")
 
-        model, pipeline = train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path)
+        model, pipeline = train_classifier_linear(
+            train_loader, test_loader, dummy_input, encoder_path
+        )
 
         model_save_dir = Path(f"output/results_linear_encoded_{dataset_type}_paths")
         plot_save_dir = Path(f"output/results_linear_encoded_{dataset_type}_pngs")
@@ -30,39 +33,65 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
         plot_save_dir.mkdir(parents=True, exist_ok=True)
 
         def plot_callback(metrics, epoch):
-            Plotter.plot_loss_progression(metrics, list(range(1, epoch + 1)), plot_save_dir)
+            Plotter.plot_loss_progression(
+                metrics, list(range(1, epoch + 1)), plot_save_dir
+            )
 
         best_model_path, best_epoch = pipeline.train(
-            max_epochs=100, 
+            max_epochs=100,
             save_every=10,
             model_save_dir=model_save_dir,
             metrics_save_dir=plot_save_dir,
-            plot_callback=plot_callback
+            plot_callback=plot_callback,
         )
 
         if best_model_path is not None:
             print(f"Loading best model from epoch {best_epoch} for confusion matrix...")
             model.load_state_dict(torch.load(best_model_path))
 
-        Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png")
+        Plotter.plot_metrics(
+            pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png"
+        )
         Plotter.plot_accuracy(
             accuracy_values=pipeline.tracker.get_metrics()["accuracy"],
-            output_file_name=plot_save_dir / "classifier_accuracy.png"
+            output_file_name=plot_save_dir / "classifier_accuracy.png",
         )
 
-        Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_1.png", show=False)
-        Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_2.png", show=False)
+        Plotter.plot_predictions(
+            model,
+            test_loader,
+            dataset_type,
+            DEVICE,
+            plot_save_dir / f"{dataset_type}_predictions_1.png",
+            show=False,
+        )
+        Plotter.plot_predictions(
+            model,
+            test_loader,
+            dataset_type,
+            DEVICE,
+            plot_save_dir / f"{dataset_type}_predictions_2.png",
+            show=False,
+        )
 
         if dataset_type == "MNIST":
-            Plotter.plot_confusion_matrix_mnist(model, test_loader, DEVICE, plot_save_dir / "mnist_confusion_matrix.png")
+            Plotter.plot_confusion_matrix_mnist(
+                model, test_loader, DEVICE, plot_save_dir / "mnist_confusion_matrix.png"
+            )
         elif dataset_type == "CIFAR10":
-            Plotter.plot_confusion_matrix_cifar10(model, test_loader, DEVICE, plot_save_dir / "cifar10_confusion_matrix.png")
+            Plotter.plot_confusion_matrix_cifar10(
+                model,
+                test_loader,
+                DEVICE,
+                plot_save_dir / "cifar10_confusion_matrix.png",
+            )
 
         for e in [10]:
             self.assertTrue((model_save_dir / f"classifier_epoch_{e}.pth").exists())
 
         self.assertTrue((plot_save_dir / "classifier_metrics.png").exists())
-        self.assertTrue((plot_save_dir / "epoch_metrics.txt").exists()) 
+        self.assertTrue((plot_save_dir / "epoch_metrics.txt").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

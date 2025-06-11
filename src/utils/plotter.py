@@ -13,7 +13,9 @@ from classes.tracker import DataDict
 
 class Plotter:
     @staticmethod
-    def show_image(data: torch.Tensor, output_file_name: Path = None, show: bool = False):
+    def show_image(
+        data: torch.Tensor, output_file_name: Path = None, show: bool = False
+    ):
         """displays / saves a MNIST / CIFAR10 tensor as image"""
         data = data.cpu()
 
@@ -71,14 +73,16 @@ class Plotter:
         plt.show()
 
     @staticmethod
-    def plot_loss_progression(metrics: DataDict, epochs: list[int], output_file_name: Path):
+    def plot_loss_progression(
+        metrics: DataDict, epochs: list[int], output_file_name: Path
+    ):
         train_losses = metrics.get("train_loss", [])
         test_losses = metrics.get("test_loss", [])
 
         for e in epochs:
             plt.figure()
-            plt.plot(range(1, e + 1), train_losses[:e], 'r-', label='Training loss')
-            plt.plot(range(1, e + 1), test_losses[:e], 'b-', label='Validation loss')
+            plt.plot(range(1, e + 1), train_losses[:e], "r-", label="Training loss")
+            plt.plot(range(1, e + 1), test_losses[:e], "b-", label="Validation loss")
             plt.xlabel("Epoch")
             plt.ylabel("Loss")
             plt.title(f"Training vs Validation Loss (1 to {e})")
@@ -94,7 +98,7 @@ class Plotter:
         epochs = list(range(1, len(accuracy_values) + 1))
 
         plt.figure()
-        plt.plot(epochs, accuracy_values, 'g-', label='Validation Accuracy')
+        plt.plot(epochs, accuracy_values, "g-", label="Validation Accuracy")
         plt.xlabel("Epoch")
         plt.ylabel("Accuracy (%)")
         plt.title("Validation Accuracy (1 to {})".format(len(accuracy_values)))
@@ -104,7 +108,9 @@ class Plotter:
         plt.close()
 
     @staticmethod
-    def plot_confusion_matrix(model, dataloader, device, class_names, title, output_file):
+    def plot_confusion_matrix(
+        model, dataloader, device, class_names, title, output_file
+    ):
         model.eval()
         all_preds = []
         all_labels = []
@@ -118,11 +124,18 @@ class Plotter:
                 all_labels.extend(labels.cpu().numpy())
 
         cm = confusion_matrix(all_labels, all_preds)
-        #cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        # cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
         plt.figure(figsize=(10, 8))
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
-        #sns.heatmap(cm_normalized, annot=True, fmt=".4f", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            xticklabels=class_names,
+            yticklabels=class_names,
+        )
+        # sns.heatmap(cm_normalized, annot=True, fmt=".4f", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
         plt.title(title)
         plt.xlabel("Predicted Label")
         plt.ylabel("True Label")
@@ -134,26 +147,56 @@ class Plotter:
     @staticmethod
     def plot_confusion_matrix_mnist(model, dataloader, device, output_file: Path):
         Plotter.plot_confusion_matrix(
-            model, dataloader, device,
+            model,
+            dataloader,
+            device,
             class_names=[str(i) for i in range(10)],
             title="MNIST Confusion Matrix",
-            output_file=output_file)
+            output_file=output_file,
+        )
 
     @staticmethod
     def plot_confusion_matrix_cifar10(model, dataloader, device, output_file: Path):
         Plotter.plot_confusion_matrix(
-            model, dataloader, device,
-            class_names=['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck'],
-            title="CIFAR10 Confusion Matrix", 
-            output_file=output_file)
-        
+            model,
+            dataloader,
+            device,
+            class_names=[
+                "airplane",
+                "automobile",
+                "bird",
+                "cat",
+                "deer",
+                "dog",
+                "frog",
+                "horse",
+                "ship",
+                "truck",
+            ],
+            title="CIFAR10 Confusion Matrix",
+            output_file=output_file,
+        )
+
     @staticmethod
-    def plot_predictions(model, dataloader, dataset_type, device, output_file_name=None, show=False):
+    def plot_predictions(
+        model, dataloader, dataset_type, device, output_file_name=None, show=False
+    ):
 
         if dataset_type.upper() == "MNIST":
             class_names = [str(i) for i in range(10)]
         else:
-            class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+            class_names = [
+                "airplane",
+                "automobile",
+                "bird",
+                "cat",
+                "deer",
+                "dog",
+                "frog",
+                "horse",
+                "ship",
+                "truck",
+            ]
 
         # Collect all images and labels for random selection
         images_list, labels_list = [], []
@@ -194,9 +237,11 @@ class Plotter:
                 ax.imshow(img.permute(1, 2, 0).numpy().clip(0, 1))
             true_lbl = class_names[selected_labels[i].item()]
             pred_lbl = class_names[preds[i].item()]
-            correct = (selected_labels[i].item() == preds[i].item())
+            correct = selected_labels[i].item() == preds[i].item()
             color = "green" if correct else "red"
-            ax.set_title(f"Label: {true_lbl}\nPred: {pred_lbl}", color=color, fontsize=11)
+            ax.set_title(
+                f"Label: {true_lbl}\nPred: {pred_lbl}", color=color, fontsize=11
+            )
             ax.axis("off")
 
         fig.suptitle(f"Random {dataset_type} Images", fontsize=14)

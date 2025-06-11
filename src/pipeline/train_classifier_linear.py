@@ -11,8 +11,11 @@ from classes.tracker import Tracker
 from classes.metrics import Metrics
 from pathlib import Path
 
+
 class ClassifierTrainingPipeline:
-    def __init__(self, dataloader_train, dataloader_test, model, loss_function, optimizer):
+    def __init__(
+        self, dataloader_train, dataloader_test, model, loss_function, optimizer
+    ):
         self.dataloader_train = dataloader_train
         self.dataloader_test = dataloader_test
         self.model = model.to(DEVICE)
@@ -45,26 +48,37 @@ class ClassifierTrainingPipeline:
     def _write_metrics_header(self):
         if self.metrics_file:
             with open(self.metrics_file, "w") as f:
-                f.write("Epoch | Train Loss | Test Loss  | Accuracy | Error Rate | Precision | Recall | Specificity |  NPV   |  FPR   |  FNR   | F1 Score | Fbeta Score\n")
+                f.write(
+                    "Epoch | Train Loss | Test Loss  | Accuracy | Error Rate | Precision | Recall | Specificity |  NPV   |  FPR   |  FNR   | F1 Score | Fbeta Score\n"
+                )
 
     def _append_metrics_row(self, epoch, avg_train_loss, test_loss, metrics):
         if self.metrics_file:
-            accuracy    = metrics["accuracy"][-1]
-            error_rate  = metrics["error_rate"][-1]
-            precision   = metrics["precision"][-1]
-            recall      = metrics["recall"][-1]
+            accuracy = metrics["accuracy"][-1]
+            error_rate = metrics["error_rate"][-1]
+            precision = metrics["precision"][-1]
+            recall = metrics["recall"][-1]
             specificity = metrics["specificity"][-1]
-            npv         = metrics["NPV"][-1]
-            fpr         = metrics["FPR"][-1]
-            fnr         = metrics["FNR"][-1]
-            f1_score    = metrics["f1_score"][-1]
+            npv = metrics["NPV"][-1]
+            fpr = metrics["FPR"][-1]
+            fnr = metrics["FNR"][-1]
+            f1_score = metrics["f1_score"][-1]
             fbeta_score = metrics["fbeta_score"][-1]
             with open(self.metrics_file, "a") as f:
-                f.write(f"{epoch:>5} |  {avg_train_loss:.4f}    |   {test_loss:.4f}   |  {accuracy:.2f}%  |   "
-                        f"{error_rate:.4f}   |  {precision:.4f}   | {recall:.4f} |   {specificity:.4f}    | "
-                        f"{npv:.4f} | {fpr:.4f} | {fnr:.4f} |  {f1_score:.4f}  | {fbeta_score:.4f}\n")
+                f.write(
+                    f"{epoch:>5} |  {avg_train_loss:.4f}    |   {test_loss:.4f}   |  {accuracy:.2f}%  |   "
+                    f"{error_rate:.4f}   |  {precision:.4f}   | {recall:.4f} |   {specificity:.4f}    | "
+                    f"{npv:.4f} | {fpr:.4f} | {fnr:.4f} |  {f1_score:.4f}  | {fbeta_score:.4f}\n"
+                )
 
-    def train(self, max_epochs=100, save_every=10, model_save_dir=None, metrics_save_dir=None, plot_callback=None):
+    def train(
+        self,
+        max_epochs=100,
+        save_every=10,
+        model_save_dir=None,
+        metrics_save_dir=None,
+        plot_callback=None,
+    ):
         test_losses = []
         extra_epochs = 0
         triggered_extra = False
@@ -91,16 +105,30 @@ class ClassifierTrainingPipeline:
             self._append_metrics_row(epoch, avg_train_loss, test_loss, metrics)
             accuracy = metrics["accuracy"][-1]
 
-            print(f"Epoch {epoch}: Train Loss = {avg_train_loss:.4f}, Test Loss = {test_loss:.4f}, Acc = {accuracy:.2f}%")
+            print(
+                f"Epoch {epoch}: Train Loss = {avg_train_loss:.4f}, Test Loss = {test_loss:.4f}, Acc = {accuracy:.2f}%"
+            )
 
             if model_save_dir is not None and epoch % save_every == 0:
-                torch.save(self.model.state_dict(), model_save_dir / f"classifier_epoch_{epoch}.pth")
+                torch.save(
+                    self.model.state_dict(),
+                    model_save_dir / f"classifier_epoch_{epoch}.pth",
+                )
 
             if not triggered_extra and epoch >= 4:
-                if test_losses[-1] > test_losses[-2] > test_losses[-3] > test_losses[-4]:
+                if (
+                    test_losses[-1]
+                    > test_losses[-2]
+                    > test_losses[-3]
+                    > test_losses[-4]
+                ):
                     best_epoch = epoch - 3
-                    best_model_path = model_save_dir / f"best_classifier_epoch_{best_epoch}.pth"
-                    print(f"Early stopping: Test loss increased. Saving best checkpoint at epoch {best_epoch}.")
+                    best_model_path = (
+                        model_save_dir / f"best_classifier_epoch_{best_epoch}.pth"
+                    )
+                    print(
+                        f"Early stopping: Test loss increased. Saving best checkpoint at epoch {best_epoch}."
+                    )
                     torch.save(self.model.state_dict(), best_model_path)
                     if plot_callback:
                         plot_callback(self.tracker.get_metrics(), epoch)
@@ -111,7 +139,10 @@ class ClassifierTrainingPipeline:
                 extra_epochs -= 1
                 if extra_epochs == 0:
                     print(f"Stopping after 2 extra epochs. Final epoch: {epoch}")
-                    torch.save(self.model.state_dict(), model_save_dir / f"classifier_final_epoch_{epoch}.pth")
+                    torch.save(
+                        self.model.state_dict(),
+                        model_save_dir / f"classifier_final_epoch_{epoch}.pth",
+                    )
                     if plot_callback:
                         plot_callback(self.tracker.get_metrics(), epoch)
                     break
@@ -152,17 +183,36 @@ class ClassifierTrainingPipeline:
 
         avg_loss = test_loss / len(self.dataloader_test)
         self.tracker.track("test_loss", avg_loss, self.current_epoch)
-        self.tracker.track("accuracy", Metrics.accuracy(tp, tn, fp, fn), self.current_epoch)
-        self.tracker.track("error_rate", Metrics.error_rate(tp, tn, fp, fn), self.current_epoch)
-        self.tracker.track("precision", Metrics.precision(tp, tn, fp, fn), self.current_epoch)
+        self.tracker.track(
+            "accuracy", Metrics.accuracy(tp, tn, fp, fn), self.current_epoch
+        )
+        self.tracker.track(
+            "error_rate", Metrics.error_rate(tp, tn, fp, fn), self.current_epoch
+        )
+        self.tracker.track(
+            "precision", Metrics.precision(tp, tn, fp, fn), self.current_epoch
+        )
         self.tracker.track("recall", Metrics.recall(tp, tn, fp, fn), self.current_epoch)
-        self.tracker.track("specificity", Metrics.specificity(tp, tn, fp, fn), self.current_epoch)
-        self.tracker.track("NPV", Metrics.negative_predictive_value(tp, tn, fp, fn), self.current_epoch)
-        self.tracker.track("FPR", Metrics.false_positive_rate(tp, tn, fp, fn), self.current_epoch)
-        self.tracker.track("FNR", Metrics.false_negative_rate(tp, tn, fp, fn), self.current_epoch)
-        self.tracker.track("f1_score", Metrics.f1_score(tp, tn, fp, fn), self.current_epoch)
-        self.tracker.track("fbeta_score", Metrics.fbeta_score(tp, tn, fp, fn), self.current_epoch)
+        self.tracker.track(
+            "specificity", Metrics.specificity(tp, tn, fp, fn), self.current_epoch
+        )
+        self.tracker.track(
+            "NPV", Metrics.negative_predictive_value(tp, tn, fp, fn), self.current_epoch
+        )
+        self.tracker.track(
+            "FPR", Metrics.false_positive_rate(tp, tn, fp, fn), self.current_epoch
+        )
+        self.tracker.track(
+            "FNR", Metrics.false_negative_rate(tp, tn, fp, fn), self.current_epoch
+        )
+        self.tracker.track(
+            "f1_score", Metrics.f1_score(tp, tn, fp, fn), self.current_epoch
+        )
+        self.tracker.track(
+            "fbeta_score", Metrics.fbeta_score(tp, tn, fp, fn), self.current_epoch
+        )
         return avg_loss
+
 
 def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path):
     in_channels = dummy_input.shape[1]
@@ -186,7 +236,9 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
         encoder_output_size = encoder_output.view(1, -1).size(1)
 
     classifier = ClassifierResNet(input_size=encoder_output_size)
-    combined_model = EncoderClassifier(encoder, classifier, img_channels = img_channels, img_size = img_size).to(DEVICE)
+    combined_model = EncoderClassifier(
+        encoder, classifier, img_channels=img_channels, img_size=img_size
+    ).to(DEVICE)
 
     optimizer = optim.Adam(combined_model.parameters(), lr=0.0001, betas=(0.9, 0.999))
     loss_fn = nn.NLLLoss()
@@ -196,7 +248,7 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
         dataloader_test=test_loader,
         model=combined_model,
         loss_function=loss_fn,
-        optimizer=optimizer
+        optimizer=optimizer,
     )
 
     return combined_model, pipeline
