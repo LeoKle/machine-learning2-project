@@ -1,7 +1,7 @@
 class Metrics:
     @staticmethod
     def accuracy(tp, tn, fp, fn):
-        return (tp + tn) / (tp + tn + fp + fn) if (tp + tn + fp + fn) != 0 else 0.0
+        return ((tp + tn) / (tp + tn + fp + fn) * 100) if (tp + tn + fp + fn) != 0 else 0.0
 
     @staticmethod
     def error_rate(tp, tn, fp, fn):
