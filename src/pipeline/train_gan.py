@@ -1,3 +1,4 @@
+from pathlib import Path
 import torch
 import torch.nn as nn
 
@@ -35,9 +36,9 @@ class GanTrainingPipeline:
         self.is_image_count = 5000  # Number of images to compute Inception Score
         self.is_batch_size = 100  # Batch size for generating images for Inception Score
 
-        self.output_dir = output_dir
+        self.output_dir = Path(output_dir)
 
-        self.tracker = Tracker(output=self.output_dir + "/gan_metrics.json")
+        self.tracker = Tracker(output=self.output_dir / "gan_metrics.json")
 
     def train_discriminator(self, batch: torch.Tensor):
         self.discriminator.zero_grad()
@@ -96,7 +97,7 @@ class GanTrainingPipeline:
             generator_output = self.generator(latent_tensor)
 
             Plotter.show_image(
-                generator_output, output_file_name=self.output_dir + f"/gan_{epoch}.png"
+                generator_output, output_file_name=self.output_dir / f"gan_{epoch}.png"
             )
             Plotter.show_image(generator_output, output_file_name="output/#latest.png")
 
