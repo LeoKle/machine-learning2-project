@@ -1,7 +1,7 @@
 import unittest
 import torch
 
-from models.classifier.classifier import Classifier
+from models.classifier.classifier_linear import Classifier
 
 
 class TestClassifier(unittest.TestCase):
