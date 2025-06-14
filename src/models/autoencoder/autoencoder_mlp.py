@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 class Autoencoder_lin(nn.Module):
     def __init__(self, dataset_type="CIFAR10"):
         super().__init__()
@@ -19,7 +20,7 @@ class Autoencoder_lin(nn.Module):
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
-            nn.Linear(64, 16)
+            nn.Linear(64, 16),
         )
 
         self.decoder = nn.Sequential(
@@ -28,8 +29,8 @@ class Autoencoder_lin(nn.Module):
             nn.Linear(64, 128),
             nn.ReLU(),
             nn.Linear(128, self.image_dim),
-            nn.Tanh(),  
-            nn.Unflatten(dim=1, unflattened_size=self.output_shape)
+            nn.Tanh(),
+            nn.Unflatten(dim=1, unflattened_size=self.output_shape),
         )
 
     def forward(self, x):
