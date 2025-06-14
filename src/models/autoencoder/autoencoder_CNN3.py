@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class AutoencoderCNN3(nn.Module):
     def __init__(self, dataset_type="CIFAR10", drop_prob=0.0):
         super().__init__()
@@ -20,37 +21,50 @@ class AutoencoderCNN3(nn.Module):
         self.drop = nn.Dropout2d(p=drop_prob)
 
         self.encoder = nn.Sequential(
-            nn.Conv2d(self.img_channels, 32, 3, stride=1, padding=1),   # 32x32
+            nn.Conv2d(self.img_channels, 32, 3, stride=1, padding=1),  # 32x32
             nn.ReLU(),
-            nn.Conv2d(32, 64, 3, stride=2, padding=1),             # 16x16
+            nn.Conv2d(32, 64, 3, stride=2, padding=1),  # 16x16
             nn.ReLU(),
-            nn.Conv2d(64, 128, 3, stride=2, padding=1),            # 8x8
+            nn.Conv2d(64, 128, 3, stride=2, padding=1),  # 8x8
             nn.ReLU(),
-            nn.Conv2d(128, 256, 3, stride=2, padding=1),           # 4x4
+            nn.Conv2d(128, 256, 3, stride=2, padding=1),  # 4x4
             nn.ReLU(),
-            nn.Conv2d(256, 512, 3, stride=2, padding=1),           # 2x2
+            nn.Conv2d(256, 512, 3, stride=2, padding=1),  # 2x2
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(512 * 2 * 2, self.latent_dim)
+            nn.Linear(512 * 2 * 2, self.latent_dim),
         )
 
         self.decoder = nn.Sequential(
             nn.Linear(self.latent_dim, 512 * 2 * 2),
             nn.Unflatten(dim=1, unflattened_size=(512, 2, 2)),
-            nn.ConvTranspose2d(512, 256, 3, stride=2, padding=1, output_padding=1),  # 4x4
+            nn.ConvTranspose2d(
+                512, 256, 3, stride=2, padding=1, output_padding=1
+            ),  # 4x4
             nn.ReLU(),
-            nn.ConvTranspose2d(256, 128, 3, stride=2, padding=1, output_padding=1),  # 8x8
+            nn.ConvTranspose2d(
+                256, 128, 3, stride=2, padding=1, output_padding=1
+            ),  # 8x8
             nn.ReLU(),
-            nn.ConvTranspose2d(128, 64, 3, stride=2, padding=1, output_padding=1),   # 16x16
+            nn.ConvTranspose2d(
+                128, 64, 3, stride=2, padding=1, output_padding=1
+            ),  # 16x16
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),    # 32x32
+            nn.ConvTranspose2d(
+                64, 32, 3, stride=2, padding=1, output_padding=1
+            ),  # 32x32
             nn.ReLU(),
             nn.Conv2d(32, self.img_channels, 3, padding=1),
-            nn.Tanh()
+            nn.Tanh(),
         )
 
     def forward(self, x):
         z = self.encoder(x)
         decoded = self.decoder(z)
-        decoded = F.interpolate(decoded, size=(self.img_size, self.img_size), mode='bilinear', align_corners=False)
+        decoded = F.interpolate(
+            decoded,
+            size=(self.img_size, self.img_size),
+            mode="bilinear",
+            align_corners=False,
+        )
         return decoded
