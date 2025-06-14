@@ -35,9 +35,9 @@ class GanTrainingPipeline:
         self.is_image_count = 5000  # Number of images to compute Inception Score
         self.is_batch_size = 100  # Batch size for generating images for Inception Score
 
-        self.tracker = Tracker()
-
         self.output_dir = output_dir
+
+        self.tracker = Tracker(output=self.output_dir + "/gan_metrics.json")
 
     def train_discriminator(self, batch: torch.Tensor):
         self.discriminator.zero_grad()
@@ -179,4 +179,5 @@ class GanTrainingPipeline:
                 print(f"Discriminator accuracy on test set: {accuracy:.4f}")
                 self.tracker.track("accuracy", accuracy, epoch)
 
+        self.tracker.export_data()
         print(self.tracker.get_metrics())
