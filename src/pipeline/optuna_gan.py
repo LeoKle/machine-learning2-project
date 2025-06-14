@@ -30,9 +30,9 @@ class OptunaStudy:
         self.discriminator = discriminator_model(dataset=self.dataset)
 
         self.study = optuna.create_study(
-            directions=["maximize"],
-            study_name=f"gan_IS_{self.dataset.lower()}_{generator_model.__name__.lower()}_{discriminator_model.__name__.lower()}",
-            storage="sqlite:///gan_optuna_study_IS.db",
+            directions=["maximize", "minimize"],
+            study_name=f"gan_IS_FID_{self.dataset.lower()}_{generator_model.__name__.lower()}_{discriminator_model.__name__.lower()}",
+            storage="sqlite:///test.db",
             load_if_exists=True,
         )
 
@@ -44,7 +44,7 @@ class OptunaStudy:
         os.makedirs(self.trial_dir, exist_ok=True)
 
         lr_gen = trial.suggest_float("lr_gen", 1e-4, 5e-4, log=True)
-        lr_disc = trial.suggest_float("lr_disc", 1e-4, 5e-4, log=True)
+        lr_disc = trial.suggest_float("lr_disc", 1e-5, 5e-4, log=True)
         beta1 = trial.suggest_float("beta1", 0.45, 0.55)
         beta2 = trial.suggest_float("beta2", 0.99, 0.999)
         n_epochs = trial.suggest_int("n_epochs", 20, 100)
@@ -93,12 +93,12 @@ class OptunaStudy:
             self.trial_dir + "/generator.pth",
         )
 
-        return pipeline.metrics.get_last_inception_score()[0]
+        # return pipeline.metrics.get_last_inception_score()[0]
 
-        # return (
-        #     pipeline.metrics.get_last_inception_score()[0],
-        #     pipeline.metrics.get_last_fid_score(),
-        # )
+        return (
+            pipeline.metrics.get_last_inception_score()[0],
+            pipeline.metrics.get_last_fid_score(),
+        )
 
     def optimize(self, n_trials: int):
         self.study.optimize(self.objective, n_trials=n_trials)

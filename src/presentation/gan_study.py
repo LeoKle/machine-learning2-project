@@ -1,13 +1,15 @@
 from models.gan.discriminator import Discriminator
+from models.gan.discriminator_cnn import DiscriminatorCNN
 from models.gan.generator import Generator
+from models.gan.generator_cnn import GeneratorCNN, GeneratorCNN2
 from pipeline.optuna_gan import OptunaStudy
 
 
 if __name__ == "__main__":
-    generator = Generator
-    discriminator = Discriminator
-    optuna_study = OptunaStudy(generator, discriminator, dataset="MNIST")
-    optuna_study.optimize(n_trials=5)
+    generator = GeneratorCNN2
+    discriminator = DiscriminatorCNN
+    optuna_study = OptunaStudy(generator, discriminator, dataset="CIFAR10")
+    optuna_study.optimize(n_trials=2)
 
     print("Best trials:")
     for trial in optuna_study.best_trials():
