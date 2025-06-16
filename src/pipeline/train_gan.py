@@ -50,17 +50,19 @@ class GanTrainingPipeline:
         noise_image = batch  # + torch.randn_like(batch) * 0.05
         output_real = self.discriminator(noise_image)
 
-        loss_real = self.loss_function_discriminator(output_real, label_real)
+        loss_real = self.loss_function_discriminator(output_real, label_real.view(-1))
 
         # train discriminator on generated data
         label_fake = torch.zeros(batch_size, 1, device=DEVICE)  # * 0.1
         latent_tensor = torch.randn(
-            batch_size, self.generator.latent_dim, device=DEVICE
+            batch_size, self.generator.latent_dim, 1, 1, device=DEVICE
         )
         generated_images = self.generator(latent_tensor)
 
         output_generated = self.discriminator(generated_images)
-        loss_generated = self.loss_function_discriminator(output_generated, label_fake)
+        loss_generated = self.loss_function_discriminator(
+            output_generated, label_fake.view(-1)
+        )
 
         total_loss = loss_real + loss_generated
         self.discriminator_loss.append(total_loss)
@@ -73,14 +75,14 @@ class GanTrainingPipeline:
         batch_size = batch.shape[0]
 
         latent_tensor = torch.randn(
-            batch_size, self.generator.latent_dim, device=DEVICE
+            batch_size, self.generator.latent_dim, 1, 1, device=DEVICE
         )
         label_real = torch.ones(batch_size, 1, device=DEVICE)
 
         generator_output = self.generator(latent_tensor)
         discriminator_output = self.discriminator(generator_output)
 
-        loss = self.loss_function_generator(discriminator_output, label_real)
+        loss = self.loss_function_generator(discriminator_output, label_real.view(-1))
         self.generator_loss.append(loss)
 
         loss.backward()
@@ -91,7 +93,7 @@ class GanTrainingPipeline:
             self.generator.eval()
             image_count = 10
             latent_tensor = torch.randn(
-                image_count, self.generator.latent_dim, device=DEVICE
+                image_count, self.generator.latent_dim, 1, 1, device=DEVICE
             )
 
             generator_output = self.generator(latent_tensor)
@@ -145,21 +147,27 @@ class GanTrainingPipeline:
                 for _, (x, _) in enumerate(self.dataloader_test):
                     x = x.to(DEVICE)
                     real_out = self.discriminator(x)
-                    real_preds.extend((real_out > 0.5).float().cpu())
-                    real_targets.extend(torch.ones_like(real_out).cpu())
+                    real_preds.append((real_out > 0.5).float().cpu())
+                    real_targets.append(torch.ones_like(real_out).cpu())
 
-                    z = torch.randn(x.size(0), self.generator.latent_dim, device=DEVICE)
+                    z = torch.randn(
+                        x.size(0), self.generator.latent_dim, 1, 1, device=DEVICE
+                    )
                     fake_imgs = self.generator(z)
                     fake_out = self.discriminator(fake_imgs)
-                    fake_preds.extend((fake_out > 0.5).float().cpu())
-                    fake_targets.extend(torch.zeros_like(fake_out).cpu())
+                    fake_preds.append((fake_out > 0.5).float().cpu())
+                    fake_targets.append(torch.zeros_like(fake_out).cpu())
 
                     self.metrics.update_fid(fake_imgs, real=False)
                     self.metrics.update_fid(x, real=True)
 
                 for _ in range(0, self.is_image_count, self.is_batch_size):
                     z = torch.randn(
-                        self.is_batch_size, self.generator.latent_dim, device=DEVICE
+                        self.is_batch_size,
+                        self.generator.latent_dim,
+                        1,
+                        1,
+                        device=DEVICE,
                     )
                     fake_imgs = self.generator(z)
                     # sum IS score:

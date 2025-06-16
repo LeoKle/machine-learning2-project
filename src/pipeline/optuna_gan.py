@@ -31,8 +31,8 @@ class OptunaStudy:
 
         self.study = optuna.create_study(
             directions=["maximize", "minimize"],
-            study_name=f"gan_IS_FID_{self.dataset.lower()}_{generator_model.__name__.lower()}_{discriminator_model.__name__.lower()}",
-            storage="sqlite:///test.db",
+            study_name=f"dcgan",
+            storage="sqlite:///dcgan.db",
             load_if_exists=True,
         )
 
@@ -43,11 +43,15 @@ class OptunaStudy:
         self.trial_dir = self.output_dir + f"/{trial.number}"
         os.makedirs(self.trial_dir, exist_ok=True)
 
-        lr_gen = trial.suggest_float("lr_gen", 1e-4, 5e-4, log=True)
-        lr_disc = trial.suggest_float("lr_disc", 1e-5, 5e-4, log=True)
-        beta1 = trial.suggest_float("beta1", 0.45, 0.55)
-        beta2 = trial.suggest_float("beta2", 0.99, 0.999)
-        n_epochs = trial.suggest_int("n_epochs", 20, 100)
+        n_epochs = trial.suggest_int("n_epochs", 100, 250)
+
+        lr_gen = trial.suggest_float("lr_gen", 2e-4, 5e-4, log=True)
+        beta1_gen = trial.suggest_float("beta1_gen", 0.5, 0.5)
+        beta2_gen = trial.suggest_float("beta2_gen", 0.999, 0.999)
+
+        lr_disc = trial.suggest_float("lr_gen", 1e-4, 2e-4, log=True)
+        beta1_disc = trial.suggest_float("beta1_gen", 0.5, 0.5)
+        beta2_disc = trial.suggest_float("beta2_gen", 0.999, 0.999)
 
         loss_function_generator = nn.BCELoss()
         loss_function_discriminator = nn.BCELoss()
@@ -66,10 +70,10 @@ class OptunaStudy:
             loss_function_discriminator = nn.MSELoss()
 
         optimizer_discriminator = torch.optim.Adam(
-            self.discriminator.parameters(), lr=lr_disc, betas=(beta1, beta2)
+            self.discriminator.parameters(), lr=lr_disc, betas=(beta1_disc, beta2_disc)
         )
         optimizer_generator = torch.optim.Adam(
-            self.generator.parameters(), lr=lr_gen, betas=(beta1, beta2)
+            self.generator.parameters(), lr=lr_gen, betas=(beta1_gen, beta2_gen)
         )
 
         pipeline = GanTrainingPipeline(
