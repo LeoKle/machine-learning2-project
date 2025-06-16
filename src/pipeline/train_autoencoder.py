@@ -40,7 +40,6 @@ class AutoencoderTrainingPipline:
 
         self.tracker = Tracker(self.save_path / f"{self.dataset_type}_metrics.json")
 
-
         self.last_inputs = None
         self.last_reconstructions = None
         self.last_latents = None
@@ -78,7 +77,6 @@ class AutoencoderTrainingPipline:
             print(f"Epoch {epoch+1}: Avg Test Loss = {avg_test_loss:.4f}")
 
         self.tracker.export_data()
-
 
         self._save_loss_plot(train_losses, test_losses)
         self._save_min_loss_distance(train_losses, test_losses)

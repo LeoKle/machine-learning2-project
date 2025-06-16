@@ -12,8 +12,7 @@ from pipeline.train_autoencoder import AutoencoderTrainingPipline
 class TestAutoencoderPipeline(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.dataset_type = "CIFAR10"  
-
+        cls.dataset_type = "CIFAR10"
 
         cls.model = AutoencoderCNN3(dataset_type=cls.dataset_type, drop_prob=0.3)
 
@@ -29,13 +28,11 @@ class TestAutoencoderPipeline(unittest.TestCase):
             optimizer=cls.optimizer,
             epochs=100,
             save_path="resultsAECNN3_CIFAR10",
-            dataset_type=cls.dataset_type, 
-
+            dataset_type=cls.dataset_type,
         )
 
     def test_epoch(self):
         self.pipeline.train()
-
 
 
 if __name__ == "__main__":
