@@ -6,22 +6,21 @@ from classes.tracker import Tracker
 from utils.device import DEVICE
 from utils.plotter import Plotter
 from tqdm import tqdm
-from typing import Union
 from torchvision.utils import make_grid
 import torchvision.transforms.functional as TF
-from PIL import Image
 import numpy as np
+from classes.tracker import DataDict
 
 
 class AutoencoderTrainingPipline:
     def __init__(
         self,
-        dataloader_train: torch.utils.data.DataLoader,
-        dataloader_test: torch.utils.data.DataLoader,
-        model: nn.Module,
-        loss_function: torch.nn.modules.loss._Loss,
-        optimizer: torch.optim.Optimizer,
-        save_path: Union[str, Path] = "results",
+        dataloader_train,
+        dataloader_test,
+        model,
+        loss_function,
+        optimizer,
+        save_path: str | Path = "results",
         drop_prob: float = 0.0,
         epochs: int = 10,
         dataset_type: str = "CIFAR10",
@@ -35,14 +34,16 @@ class AutoencoderTrainingPipline:
         self.loss_function = loss_function
         self.optimizer = optimizer
         self.current_epoch = 0
-        self.tracker = Tracker()
         self.save_path = Path(save_path)
         self.save_path.mkdir(parents=True, exist_ok=True)
+        self.dataset_type = dataset_type
+
+        self.tracker = Tracker(self.save_path / f"{self.dataset_type}_metrics.json")
+
 
         self.last_inputs = None
         self.last_reconstructions = None
         self.last_latents = None
-        self.dataset_type = dataset_type
 
     def train(self):
         self.model.train()
@@ -50,7 +51,7 @@ class AutoencoderTrainingPipline:
         test_losses = []
 
         for epoch in range(self.epochs):
-            self.current_epoch = epoch
+            self.current_epoch = epoch + 1
             self.model.train()
 
             batch_losses = []
@@ -66,11 +67,18 @@ class AutoencoderTrainingPipline:
 
             avg_train_loss = torch.tensor(batch_losses).mean().item()
             train_losses.append(avg_train_loss)
+            self.tracker.track("train_loss", avg_train_loss, self.current_epoch)
+
             print(f"Epoch {epoch+1}: Avg Train Loss = {avg_train_loss:.4f}")
 
             avg_test_loss = self.evaluate_epoch_loss()
             test_losses.append(avg_test_loss)
+            self.tracker.track("test_loss", avg_test_loss, epoch + 1)
+
             print(f"Epoch {epoch+1}: Avg Test Loss = {avg_test_loss:.4f}")
+
+        self.tracker.export_data()
+
 
         self._save_loss_plot(train_losses, test_losses)
         self._save_min_loss_distance(train_losses, test_losses)
@@ -162,7 +170,6 @@ class AutoencoderTrainingPipline:
             f.write(result_str)
 
     def _save_loss_plot(self, train_losses, test_losses):
-        from classes.tracker import DataDict
 
         loss_dict: DataDict = {
             "Train Loss": train_losses,
