@@ -43,15 +43,15 @@ class OptunaStudy:
         self.trial_dir = self.output_dir + f"/{trial.number}"
         os.makedirs(self.trial_dir, exist_ok=True)
 
-        n_epochs = trial.suggest_int("n_epochs", 100, 250)
+        n_epochs = trial.suggest_int("n_epochs", 350, 350)
 
         lr_gen = trial.suggest_float("lr_gen", 2e-4, 5e-4, log=True)
         beta1_gen = trial.suggest_float("beta1_gen", 0.5, 0.5)
         beta2_gen = trial.suggest_float("beta2_gen", 0.999, 0.999)
 
-        lr_disc = trial.suggest_float("lr_gen", 1e-4, 2e-4, log=True)
-        beta1_disc = trial.suggest_float("beta1_gen", 0.5, 0.5)
-        beta2_disc = trial.suggest_float("beta2_gen", 0.999, 0.999)
+        lr_disc = trial.suggest_float("lr_dis", 1e-4, 2e-4, log=True)
+        beta1_disc = trial.suggest_float("beta1_dis", 0.5, 0.5)
+        beta2_disc = trial.suggest_float("beta2_dis", 0.999, 0.999)
 
         loss_function_generator = nn.BCELoss()
         loss_function_discriminator = nn.BCELoss()

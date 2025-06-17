@@ -130,7 +130,7 @@ class GanTrainingPipeline:
             self.show_current_images(epoch)
 
             # only evaluate every 10 epochs or on the last epoch
-            if epoch % 10 != 0 and epoch != epoch_count:
+            if epoch % 1000 != 0 and epoch != epoch_count:
                 continue
 
             print(f"Evaluating epoch {epoch}...")
