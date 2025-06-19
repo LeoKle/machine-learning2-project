@@ -44,7 +44,7 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
             print(f"Loading best model from epoch {best_epoch} for confusion matrix...")
             model.load_state_dict(torch.load(best_model_path))
 
-        Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png")
+        Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png", show=False)
         Plotter.plot_accuracy(accuracy_values=pipeline.tracker.get_metrics()["accuracy"], output_file_name=plot_save_dir / "classifier_accuracy.png", dataset_type=dataset_type)
         
         Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_1.png", show=False)

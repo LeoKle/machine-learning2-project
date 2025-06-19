@@ -9,7 +9,7 @@ from utils.device import DEVICE
 class TestLinearOnEncodedTraining(unittest.TestCase):
 
     def test_train_with_best_optuna_params(self):
-        dataset_type = "MNIST"  # Change to "CIFAR10" as needed
+        dataset_type = "CIFAR10"  # Change to "CIFAR10" as needed
 
         # Step 1: Run Optuna and get best params
         best_params = tune_hyperparameters(dataset_type)
@@ -45,7 +45,7 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
             model.load_state_dict(torch.load(best_model_path))
 
         # Step 4: Visualizations
-        Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png")
+        Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png", show=False)
         Plotter.plot_accuracy(accuracy_values=pipeline.tracker.get_metrics()["accuracy"], output_file_name=plot_save_dir / "classifier_accuracy.png", dataset_type=dataset_type)
         Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_1.png", show=False)
         Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_2.png", show=False)
