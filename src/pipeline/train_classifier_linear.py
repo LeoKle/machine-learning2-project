@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import optuna
 from models.autoencoder.autoencoder_CNN2 import AutoencoderCNN2
 from models.classifier.classifier_linear import ClassifierMLP, ClassifierMLPDeep
-from models.classifier.classifier_resnet import ClassifierResNet, ClassifierLarge
+from models.classifier.classifier_resnet import ClassifierResNet, ClassifierMLPLarge
 from models.classifier.encoder_classifier import EncoderClassifier
 from utils.device import DEVICE
 from utils.data_setup import prepare_dataset
@@ -204,11 +204,13 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
 
     return combined_model, pipeline
 
-def tune_hyperparameters(dataset_type="MNIST"):
+def tune_hyperparameters(dataset_type="CIFAR10"):
     def objective(trial):
         # Sample hyperparameters
-        batch_size = trial.suggest_categorical("batch_size", [16, 32, 64])
-        lr = trial.suggest_float("lr", 1e-6, 1e-4, log=True)
+        # batch_size = trial.suggest_categorical("batch_size", [16, 32, 64]) # MNIST
+        # lr = trial.suggest_float("lr", 1e-6, 1e-4, log=True) # MNIST
+        batch_size = trial.suggest_categorical("batch_size", [64, 128, 256]) # CIFAR10
+        lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True) # CIFAR10
 
         # Prepare dataset and dummy input
         train_loader, test_loader, dummy_input, encoder_path = prepare_dataset(dataset_type, batch_size)
@@ -227,7 +229,7 @@ def tune_hyperparameters(dataset_type="MNIST"):
             encoder_output_size = encoder_output.view(1, -1).size(1)
 
         # Define classifier model
-        classifier = ClassifierMLP(input_size=encoder_output_size)
+        classifier = ClassifierMLPLarge(input_size=encoder_output_size)
         combined_model = EncoderClassifier(encoder, classifier, fine_tune_encoder=False, img_channels=img_channels, img_size=img_size).to(DEVICE)
 
         optimizer = optim.Adam(combined_model.parameters(), lr=lr)
@@ -253,7 +255,7 @@ def tune_hyperparameters(dataset_type="MNIST"):
     print(f"Best hyperparameters saved to {output_path.resolve()}")
     return study.best_trial.params
 
-def train_classifier_with_best_params(dataset_type="MNIST"):
+def train_classifier_with_best_params(dataset_type="CIFAR10"):
     # Step 1: Get best Optuna-tuned hyperparameters
     best_params = tune_hyperparameters(dataset_type)
     batch_size = best_params["batch_size"]
@@ -277,7 +279,7 @@ def train_classifier_with_best_params(dataset_type="MNIST"):
         encoder_output_size = encoder_output.view(1, -1).size(1)
 
     # Step 5: Build classifier and full model
-    classifier = ClassifierMLP(input_size=encoder_output_size)
+    classifier = ClassifierMLPLarge(input_size=encoder_output_size)
     model = EncoderClassifier(encoder, classifier, fine_tune_encoder=False, img_channels=img_channels, img_size=img_size).to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=lr)

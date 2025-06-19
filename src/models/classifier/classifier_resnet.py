@@ -1,6 +1,6 @@
 import torch.nn as nn
 
-class ClassifierLarge(nn.Module):
+class ClassifierMLPLarge(nn.Module):
     def __init__(self, input_size: int, num_classes: int = 10):
         super().__init__()
         self.main = nn.Sequential(

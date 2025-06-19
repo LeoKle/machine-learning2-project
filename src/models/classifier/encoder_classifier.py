@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 from models.classifier.classifier_linear import ClassifierMLP, ClassifierMLPDeep
-from models.classifier.classifier_resnet import ClassifierResNet, ClassifierLarge
+from models.classifier.classifier_resnet import ClassifierResNet, ClassifierMLPLarge
 
 class EncoderClassifier(nn.Module):
     def __init__(self, encoder, classifier=None, num_classes=10, img_channels = 1, img_size = 28, fine_tune_encoder=True):
