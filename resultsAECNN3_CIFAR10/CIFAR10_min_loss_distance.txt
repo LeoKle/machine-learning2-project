@@ -1,0 +1,1 @@
+Min. Loss Distance: 0.000042 at Epoch 12

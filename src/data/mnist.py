@@ -7,11 +7,7 @@ from utils.root_folder import find_project_root
 
 def get_mnist_dataloaders(batch_size=64, transform=None, root=None, download=True):
     transform = transform or transforms.Compose(
-        [
-            transforms.RandomAffine(degrees=10, translate=(0.1, 0.1)),
-            transforms.ToTensor(), 
-            transforms.Normalize((0.5,), (0.5,))
-        ]
+        [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
     )
     root = root or (find_project_root() / "data")
 

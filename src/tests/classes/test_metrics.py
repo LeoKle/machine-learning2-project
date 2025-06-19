@@ -13,7 +13,9 @@ class TestMetrics(unittest.TestCase):
 
     def test_accuracy(self):
         result = Metrics.accuracy(self.tp, self.tn, self.fp, self.fn)
-        expected = (self.tp + self.tn) / (self.tp + self.tn + self.fp + self.fn)
+        expected = (
+            (self.tp + self.tn) / (self.tp + self.tn + self.fp + self.fn) * 100
+        )  # Convert to percentage
         self.assertTrue(isclose(result, expected))
 
     def test_error_rate(self):
