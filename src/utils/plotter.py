@@ -42,7 +42,7 @@ class Plotter:
         plt.close(fig)
 
     @staticmethod
-    def plot_metrics(metrics: DataDict, output_file_name: Path):
+    def plot_metrics(metrics: DataDict, output_file_name: Path, show=False):
         fig, ax = plt.subplots()
 
         # remove epochs from data
@@ -60,7 +60,9 @@ class Plotter:
 
         fig.tight_layout()
         fig.savefig(output_file_name)
-        plt.show()
+        if show:
+            plt.show()
+        plt.close()
 
     @staticmethod
     def plot_loss_progression(metrics: DataDict, epochs: list[int], output_file_name: Path, dataset_type: str):
