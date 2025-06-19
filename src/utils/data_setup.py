@@ -2,6 +2,7 @@ import torch
 from data.mnist import get_mnist_dataloaders
 from data.cifar10 import get_cifar10_dataloaders
 
+
 def prepare_dataset(dataset_type: str, batch_size: int):
     if dataset_type == "MNIST":
         train_loader, test_loader = get_mnist_dataloaders(batch_size=batch_size)
@@ -15,6 +16,7 @@ def prepare_dataset(dataset_type: str, batch_size: int):
         raise ValueError("Unsupported dataset_type")
 
     return train_loader, test_loader, dummy_input, encoder_path
+
 
 def prepare_dataset_for_cnn(dataset_type: str, batch_size: int):
     if dataset_type == "MNIST":
