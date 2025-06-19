@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
-from models.classifier.classifier_linear import Classifier, ClassifierDeep
-from models.classifier.classifier_resnet import ClassifierResNet, ClassifierLinear
+from models.classifier.classifier_linear import ClassifierMLP, ClassifierMLPDeep
+from models.classifier.classifier_resnet import ClassifierResNet, ClassifierMLPLarge
 
 
 class EncoderClassifier(nn.Module):
@@ -16,14 +16,15 @@ class EncoderClassifier(nn.Module):
     ):
         super().__init__()
         self.encoder = encoder
+        self.img_channels = img_channels
+        self.img_size = img_size
 
         if not fine_tune_encoder:
             for param in self.encoder.parameters():
                 param.requires_grad = False
 
-        self.img_channels = img_channels
-        self.img_size = img_size
         self.encoder_output_size = self.get_encoder_output_size()
+<<<<<<< HEAD
 
         if classifier is None:
             self.classifier = ClassifierResNet(
@@ -31,6 +32,9 @@ class EncoderClassifier(nn.Module):
             )
         else:
             self.classifier = classifier
+=======
+        self.classifier = classifier
+>>>>>>> encoder_classifier
 
     def get_encoder_output_size(self):
         with torch.no_grad():

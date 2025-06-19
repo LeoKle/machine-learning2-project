@@ -10,7 +10,6 @@ import random
 
 from classes.tracker import DataDict
 
-
 class Plotter:
     @staticmethod
     def show_image(
@@ -52,7 +51,7 @@ class Plotter:
         plt.close(fig)
 
     @staticmethod
-    def plot_metrics(metrics: DataDict, output_file_name: Path):
+    def plot_metrics(metrics: DataDict, output_file_name: Path, show=True):
         fig, ax = plt.subplots()
 
         # remove epochs from data
@@ -70,12 +69,18 @@ class Plotter:
 
         fig.tight_layout()
         fig.savefig(output_file_name)
-        plt.show()
+        if show:
+            plt.show()
+        plt.close()
 
     @staticmethod
+<<<<<<< HEAD
     def plot_loss_progression(
         metrics: DataDict, epochs: list[int], output_file_name: Path
     ):
+=======
+    def plot_loss_progression(metrics: DataDict, epochs: list[int], output_file_name: Path, dataset_type: str):
+>>>>>>> encoder_classifier
         train_losses = metrics.get("train_loss", [])
         test_losses = metrics.get("test_loss", [])
 
@@ -85,7 +90,7 @@ class Plotter:
             plt.plot(range(1, e + 1), test_losses[:e], "b-", label="Validation loss")
             plt.xlabel("Epoch")
             plt.ylabel("Loss")
-            plt.title(f"Training vs Validation Loss (1 to {e})")
+            plt.title(f"{dataset_type} Training vs Validation Loss")
             plt.legend()
             plt.grid(True)
             output_file = output_file_name / f"loss_epochs_up_to_{e}.png"
@@ -93,7 +98,7 @@ class Plotter:
             plt.close()
 
     @staticmethod
-    def plot_accuracy(accuracy_values, output_file_name: Path):
+    def plot_accuracy(accuracy_values, output_file_name: Path, dataset_type: str):
 
         epochs = list(range(1, len(accuracy_values) + 1))
 
@@ -101,7 +106,7 @@ class Plotter:
         plt.plot(epochs, accuracy_values, "g-", label="Validation Accuracy")
         plt.xlabel("Epoch")
         plt.ylabel("Accuracy (%)")
-        plt.title("Validation Accuracy (1 to {})".format(len(accuracy_values)))
+        plt.title(f"{dataset_type} Validation Accuracy")
         plt.legend()
         plt.grid(True)
         plt.savefig(output_file_name)
@@ -244,10 +249,11 @@ class Plotter:
             )
             ax.axis("off")
 
-        fig.suptitle(f"Random {dataset_type} Images", fontsize=14)
+        # fig.suptitle(f"Random {dataset_type} Images", fontsize=14)
         plt.tight_layout()
         if output_file_name:
             plt.savefig(output_file_name, dpi=200)
         if show:
             plt.show()
         plt.close(fig)
+        

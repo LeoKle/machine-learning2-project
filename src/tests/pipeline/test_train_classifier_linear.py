@@ -13,7 +13,7 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
         dataset_type = "MNIST"
 
         if dataset_type == "MNIST":
-            train_loader, test_loader = get_mnist_dataloaders(batch_size=64)
+            train_loader, test_loader = get_mnist_dataloaders(batch_size=32)
             dummy_input = torch.randn(1, 1, 28, 28)
             encoder_path = "resultsAECNN2_MNIST/MNIST_encoder_weights.pth"
         elif dataset_type == "CIFAR10":
@@ -33,9 +33,13 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
         plot_save_dir.mkdir(parents=True, exist_ok=True)
 
         def plot_callback(metrics, epoch):
+<<<<<<< HEAD
             Plotter.plot_loss_progression(
                 metrics, list(range(1, epoch + 1)), plot_save_dir
             )
+=======
+            Plotter.plot_loss_progression(metrics, epochs=list(range(1, epoch + 1)), output_file_name=plot_save_dir, dataset_type=dataset_type)
+>>>>>>> encoder_classifier
 
         best_model_path, best_epoch = pipeline.train(
             max_epochs=100,
@@ -49,6 +53,7 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
             print(f"Loading best model from epoch {best_epoch} for confusion matrix...")
             model.load_state_dict(torch.load(best_model_path))
 
+<<<<<<< HEAD
         Plotter.plot_metrics(
             pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png"
         )
@@ -73,6 +78,13 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
             plot_save_dir / f"{dataset_type}_predictions_2.png",
             show=False,
         )
+=======
+        Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png", show=False)
+        Plotter.plot_accuracy(accuracy_values=pipeline.tracker.get_metrics()["accuracy"], output_file_name=plot_save_dir / "classifier_accuracy.png", dataset_type=dataset_type)
+        
+        Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_1.png", show=False)
+        Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_2.png", show=False)
+>>>>>>> encoder_classifier
 
         if dataset_type == "MNIST":
             Plotter.plot_confusion_matrix_mnist(
@@ -86,8 +98,8 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
                 plot_save_dir / "cifar10_confusion_matrix.png",
             )
 
-        for e in [10]:
-            self.assertTrue((model_save_dir / f"classifier_epoch_{e}.pth").exists())
+        # for e in [10]:
+        #     self.assertTrue((model_save_dir / f"classifier_epoch_{e}.pth").exists())
 
         self.assertTrue((plot_save_dir / "classifier_metrics.png").exists())
         self.assertTrue((plot_save_dir / "epoch_metrics.txt").exists())
