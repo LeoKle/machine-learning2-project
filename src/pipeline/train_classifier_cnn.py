@@ -104,13 +104,13 @@ class ClassifierTrainingPipeline:
                     torch.save(self.model.state_dict(), best_model_path)
                     if plot_callback:
                         plot_callback(self.tracker.get_metrics(), epoch)
-                    extra_epochs = 2
+                    extra_epochs = 5
                     triggered_extra = True
 
             if triggered_extra:
                 extra_epochs -= 1
                 if extra_epochs == 0:
-                    print(f"Stopping after 2 extra epochs. Final epoch: {epoch}")
+                    print(f"Stopping after 5 extra epochs. Final epoch: {epoch}")
                     torch.save(self.model.state_dict(), model_save_dir / f"classifier_final_epoch_{epoch}.pth")
                     if plot_callback:
                         plot_callback(self.tracker.get_metrics(), epoch)
