@@ -2,13 +2,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-import optuna
 from models.autoencoder.autoencoder_CNN2 import AutoencoderCNN2
-from models.classifier.classifier_linear import ClassifierMLP, ClassifierMLPDeep
-from models.classifier.classifier_resnet import ClassifierResNet, ClassifierMLPLarge
+from models.classifier.classifier_linear import Classifier, ClassifierDeep
+from models.classifier.classifier_resnet import ClassifierResNet, ClassifierLinear
 from models.classifier.encoder_classifier import EncoderClassifier
 from utils.device import DEVICE
-from utils.data_setup import prepare_dataset
 from classes.tracker import Tracker
 from classes.metrics import Metrics
 from pathlib import Path
@@ -35,6 +33,8 @@ class ClassifierTrainingPipeline:
             self.optimizer.zero_grad()
             batch, labels = batch.to(DEVICE), labels.to(DEVICE)
             outputs = self.model(batch)
+            labels_onehot = F.one_hot(labels, num_classes=outputs.shape[1]).float()
+            # loss = self.loss_function(outputs, labels_onehot)
             loss = self.loss_function(outputs, labels)
             loss.backward()
             self.optimizer.step()
@@ -51,8 +51,6 @@ class ClassifierTrainingPipeline:
                 f.write(
                     "Epoch | Train Loss | Test Loss  | Accuracy | Error Rate | Precision | Recall | Specificity |  NPV   |  FPR   |  FNR   | F1 Score | Fbeta Score\n"
                 )
-
-    
 
     def _append_metrics_row(self, epoch, avg_train_loss, test_loss, metrics):
         if self.metrics_file:
@@ -111,9 +109,6 @@ class ClassifierTrainingPipeline:
                 f"Epoch {epoch}: Train Loss = {avg_train_loss:.4f}, Test Loss = {test_loss:.4f}, Acc = {accuracy:.2f}%"
             )
 
-            if plot_callback:
-                plot_callback(metrics, epoch)   
-
             if model_save_dir is not None and epoch % save_every == 0:
                 torch.save(
                     self.model.state_dict(),
@@ -168,6 +163,8 @@ class ClassifierTrainingPipeline:
             for batch, labels in self.dataloader_test:
                 batch, labels = batch.to(DEVICE), labels.to(DEVICE)
                 outputs = self.model(batch)
+                labels_onehot = F.one_hot(labels, num_classes=outputs.shape[1]).float()
+                # loss = self.loss_function(outputs, labels_onehot)
                 loss = self.loss_function(outputs, labels)
                 test_loss += loss.item()
 
@@ -216,12 +213,8 @@ class ClassifierTrainingPipeline:
         )
         return avg_loss
 
-<<<<<<< HEAD
 
 def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path):
-=======
-def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path, lr = 0.0001):
->>>>>>> encoder_classifier
     in_channels = dummy_input.shape[1]
     if in_channels == 1:
         dataset_type = "MNIST"
@@ -243,15 +236,11 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
         encoder_output_size = encoder_output.view(1, -1).size(1)
 
     classifier = ClassifierResNet(input_size=encoder_output_size)
-<<<<<<< HEAD
     combined_model = EncoderClassifier(
         encoder, classifier, img_channels=img_channels, img_size=img_size
     ).to(DEVICE)
-=======
-    combined_model = EncoderClassifier(encoder, classifier, img_channels = img_channels, img_size = img_size, fine_tune_encoder=True).to(DEVICE)
->>>>>>> encoder_classifier
 
-    optimizer = optim.Adam(combined_model.parameters(), lr=lr, betas=(0.9, 0.999))
+    optimizer = optim.Adam(combined_model.parameters(), lr=0.0001, betas=(0.9, 0.999))
     loss_fn = nn.NLLLoss()
 
     pipeline = ClassifierTrainingPipeline(
@@ -263,94 +252,3 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
     )
 
     return combined_model, pipeline
-<<<<<<< HEAD
-=======
-
-def tune_hyperparameters(dataset_type="CIFAR10"):
-    def objective(trial):
-        # Sample hyperparameters
-        # batch_size = trial.suggest_categorical("batch_size", [16, 32, 64]) # MNIST
-        # lr = trial.suggest_float("lr", 1e-6, 1e-4, log=True) # MNIST
-        batch_size = trial.suggest_categorical("batch_size", [64, 128, 256]) # CIFAR10
-        lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True) # CIFAR10
-
-        # Prepare dataset and dummy input
-        train_loader, test_loader, dummy_input, encoder_path = prepare_dataset(dataset_type, batch_size)
-        img_channels = dummy_input.shape[1]
-        img_size = dummy_input.shape[2]
-
-        # Load encoder
-        autoencoder = AutoencoderCNN2(dataset_type=dataset_type)
-        encoder = autoencoder.encoder
-        encoder.load_state_dict(torch.load(encoder_path))
-        encoder.eval()
-
-        # Get output size
-        with torch.no_grad():
-            encoder_output = encoder(dummy_input.to(DEVICE))
-            encoder_output_size = encoder_output.view(1, -1).size(1)
-
-        # Define classifier model
-        classifier = ClassifierMLPLarge(input_size=encoder_output_size)
-        combined_model = EncoderClassifier(encoder, classifier, fine_tune_encoder=False, img_channels=img_channels, img_size=img_size).to(DEVICE)
-
-        optimizer = optim.Adam(combined_model.parameters(), lr=lr)
-        loss_fn = nn.NLLLoss()
-
-        pipeline = ClassifierTrainingPipeline(train_loader, test_loader, combined_model, loss_fn, optimizer)
-        # epoch per trial
-        pipeline.train(max_epochs=7)
-
-        return pipeline.tracker.get_metrics()["accuracy"][-1]
-
-    study = optuna.create_study(direction="maximize")
-    # trails
-    study.optimize(objective, n_trials=15)
-
-    # Save best trial
-    output_path = Path(f"output/optuna_best_params_{dataset_type}.txt")
-    with open(output_path, "w") as f:
-        f.write(f"Best Accuracy after 7 epochs: {study.best_trial.value:.2f}%\n")
-        for key, val in study.best_trial.params.items():
-            f.write(f"{key}: {val}\n")
-
-    print(f"Best hyperparameters saved to {output_path.resolve()}")
-    return study.best_trial.params
-
-def train_classifier_with_best_params(dataset_type="CIFAR10"):
-    # Step 1: Get best Optuna-tuned hyperparameters
-    best_params = tune_hyperparameters(dataset_type)
-    batch_size = best_params["batch_size"]
-    lr = best_params["lr"]
-
-    # Step 2: Prepare dataloaders and dummy input based on dataset
-    train_loader, test_loader, dummy_input, encoder_path = prepare_dataset(dataset_type, batch_size)
-
-    img_channels = dummy_input.shape[1]
-    img_size = dummy_input.shape[2]
-
-    # Step 3: Load pre-trained encoder
-    autoencoder = AutoencoderCNN2(dataset_type=dataset_type)
-    encoder = autoencoder.encoder
-    encoder.load_state_dict(torch.load(encoder_path))
-    encoder.eval()
-
-    # Step 4: Compute encoder output size dynamically
-    with torch.no_grad():
-        encoder_output = encoder(dummy_input.to(DEVICE))
-        encoder_output_size = encoder_output.view(1, -1).size(1)
-
-    # Step 5: Build classifier and full model
-    classifier = ClassifierMLPLarge(input_size=encoder_output_size)
-    model = EncoderClassifier(encoder, classifier, fine_tune_encoder=False, img_channels=img_channels, img_size=img_size).to(DEVICE)
-
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-    loss_fn = nn.NLLLoss()
-
-    # Step 6: Train and save model
-    model_dir = f"output/best_model_checkpoints_{dataset_type}"
-    Path(model_dir).mkdir(parents=True, exist_ok=True)
-
-    pipeline = ClassifierTrainingPipeline(train_loader, test_loader, model, loss_fn, optimizer)
-    pipeline.train(max_epochs=100, model_save_dir=model_dir)
->>>>>>> encoder_classifier

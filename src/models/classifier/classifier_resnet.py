@@ -1,11 +1,7 @@
 import torch.nn as nn
 
-<<<<<<< HEAD
 
 class ClassifierLinear(nn.Module):
-=======
-class ClassifierMLPLarge(nn.Module):
->>>>>>> encoder_classifier
     def __init__(self, input_size: int, num_classes: int = 10):
         super().__init__()
         self.main = nn.Sequential(
@@ -18,17 +14,8 @@ class ClassifierMLPLarge(nn.Module):
             nn.LeakyReLU(0.1),
             nn.Dropout(0.3),
             nn.Linear(256, 256),
-            nn.BatchNorm1d(256),
             nn.LeakyReLU(0.1),
             nn.Dropout(0.2),
-<<<<<<< HEAD
-=======
-
-            nn.Linear(256, 256),
-            nn.LeakyReLU(0.1),
-            nn.Dropout(0.1),
-
->>>>>>> encoder_classifier
             nn.Linear(256, num_classes),
             nn.LogSoftmax(dim=1),
         )
