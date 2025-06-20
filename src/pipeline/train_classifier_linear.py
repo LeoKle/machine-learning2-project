@@ -255,16 +255,19 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
 
     return combined_model, pipeline
 
+
 def tune_hyperparameters(dataset_type="CIFAR10"):
     def objective(trial):
         # Sample hyperparameters
         # batch_size = trial.suggest_categorical("batch_size", [16, 32, 64]) # MNIST
         # lr = trial.suggest_float("lr", 1e-6, 1e-4, log=True) # MNIST
-        batch_size = trial.suggest_categorical("batch_size", [64, 128, 256]) # CIFAR10
-        lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True) # CIFAR10
+        batch_size = trial.suggest_categorical("batch_size", [64, 128, 256])  # CIFAR10
+        lr = trial.suggest_float("lr", 1e-5, 1e-3, log=True)  # CIFAR10
 
         # Prepare dataset and dummy input
-        train_loader, test_loader, dummy_input, encoder_path = prepare_dataset(dataset_type, batch_size)
+        train_loader, test_loader, dummy_input, encoder_path = prepare_dataset(
+            dataset_type, batch_size
+        )
         img_channels = dummy_input.shape[1]
         img_size = dummy_input.shape[2]
 
@@ -281,12 +284,20 @@ def tune_hyperparameters(dataset_type="CIFAR10"):
 
         # Define classifier model
         classifier = ClassifierMLPLarge(input_size=encoder_output_size)
-        combined_model = EncoderClassifier(encoder, classifier, fine_tune_encoder=False, img_channels=img_channels, img_size=img_size).to(DEVICE)
+        combined_model = EncoderClassifier(
+            encoder,
+            classifier,
+            fine_tune_encoder=False,
+            img_channels=img_channels,
+            img_size=img_size,
+        ).to(DEVICE)
 
         optimizer = optim.Adam(combined_model.parameters(), lr=lr)
         loss_fn = nn.NLLLoss()
 
-        pipeline = ClassifierTrainingPipeline(train_loader, test_loader, combined_model, loss_fn, optimizer)
+        pipeline = ClassifierTrainingPipeline(
+            train_loader, test_loader, combined_model, loss_fn, optimizer
+        )
         # epoch per trial
         pipeline.train(max_epochs=7)
 
@@ -306,6 +317,7 @@ def tune_hyperparameters(dataset_type="CIFAR10"):
     print(f"Best hyperparameters saved to {output_path.resolve()}")
     return study.best_trial.params
 
+
 def train_classifier_with_best_params(dataset_type="CIFAR10"):
     # Step 1: Get best Optuna-tuned hyperparameters
     best_params = tune_hyperparameters(dataset_type)
@@ -313,7 +325,9 @@ def train_classifier_with_best_params(dataset_type="CIFAR10"):
     lr = best_params["lr"]
 
     # Step 2: Prepare dataloaders and dummy input based on dataset
-    train_loader, test_loader, dummy_input, encoder_path = prepare_dataset(dataset_type, batch_size)
+    train_loader, test_loader, dummy_input, encoder_path = prepare_dataset(
+        dataset_type, batch_size
+    )
 
     img_channels = dummy_input.shape[1]
     img_size = dummy_input.shape[2]
@@ -331,7 +345,13 @@ def train_classifier_with_best_params(dataset_type="CIFAR10"):
 
     # Step 5: Build classifier and full model
     classifier = ClassifierMLPLarge(input_size=encoder_output_size)
-    model = EncoderClassifier(encoder, classifier, fine_tune_encoder=False, img_channels=img_channels, img_size=img_size).to(DEVICE)
+    model = EncoderClassifier(
+        encoder,
+        classifier,
+        fine_tune_encoder=False,
+        img_channels=img_channels,
+        img_size=img_size,
+    ).to(DEVICE)
 
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.NLLLoss()
@@ -340,6 +360,7 @@ def train_classifier_with_best_params(dataset_type="CIFAR10"):
     model_dir = f"output/best_model_checkpoints_{dataset_type}"
     Path(model_dir).mkdir(parents=True, exist_ok=True)
 
-    pipeline = ClassifierTrainingPipeline(train_loader, test_loader, model, loss_fn, optimizer)
+    pipeline = ClassifierTrainingPipeline(
+        train_loader, test_loader, model, loss_fn, optimizer
+    )
     pipeline.train(max_epochs=100, model_save_dir=model_dir)
-    
