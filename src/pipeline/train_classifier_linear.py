@@ -291,3 +291,4 @@ def train_classifier_with_best_params(dataset_type="CIFAR10"):
 
     pipeline = ClassifierTrainingPipeline(train_loader, test_loader, model, loss_fn, optimizer)
     pipeline.train(max_epochs=100, model_save_dir=model_dir)
+    

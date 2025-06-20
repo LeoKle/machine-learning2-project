@@ -84,3 +84,4 @@ class ClassifierResNet(nn.Module):
             blocks[i] = self.block3(blocks[i - 1] + blocks[i - 2])
         out = self.output_block(blocks[self.num_blocks - 1] + blocks[self.num_blocks - 2])
         return out
+
