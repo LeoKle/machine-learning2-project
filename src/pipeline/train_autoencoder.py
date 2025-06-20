@@ -91,10 +91,6 @@ class AutoencoderTrainingPipline:
                     break
 
         self.tracker.export_data()
-<<<<<<< HEAD
-=======
-
->>>>>>> 943b502f22fc7a2bf9f0d38593b7277cbd30ded5
         self._save_loss_plot(train_losses, test_losses)
         self.evaluate_and_save()
 
