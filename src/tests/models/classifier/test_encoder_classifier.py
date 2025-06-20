@@ -1,14 +1,14 @@
 import unittest
 import torch
 from models.autoencoder.autoencoder import Autoencoder
-from models.classifier.classifier_linear import Classifier
+from models.classifier.classifier_linear import ClassifierMLP
 from models.classifier.encoder_classifier import EncoderClassifier
 
 
 class TestEncoderClassifier(unittest.TestCase):
     def test_mnist(self):
         encoder = Autoencoder(dataset_type="MNIST").encoder
-        classifier = Classifier(dataset="MNIST")
+        classifier = ClassifierMLP(dataset="MNIST")
         model = EncoderClassifier(encoder, classifier)
 
         dummy_input = torch.randn(4, 1, 28, 28)  # MNIST shape
@@ -17,7 +17,7 @@ class TestEncoderClassifier(unittest.TestCase):
 
     def test_cifar10(self):
         encoder = Autoencoder(dataset_type="CIFAR10").encoder
-        classifier = Classifier(dataset="CIFAR10")
+        classifier = ClassifierMLP(dataset="CIFAR10")
         model = EncoderClassifier(encoder, classifier)
 
         dummy_input = torch.randn(4, 3, 32, 32)  # CIFAR10 shape

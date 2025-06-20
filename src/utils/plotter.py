@@ -251,3 +251,4 @@ class Plotter:
         if show:
             plt.show()
         plt.close(fig)
+        

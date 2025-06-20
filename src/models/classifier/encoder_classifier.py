@@ -43,3 +43,5 @@ class EncoderClassifier(nn.Module):
     def forward(self, x):
         features = self.encoder(x)
         return self.classifier(features)
+
+    
