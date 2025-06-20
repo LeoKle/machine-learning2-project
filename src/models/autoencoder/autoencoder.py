@@ -21,7 +21,9 @@ class Autoencoder(nn.Module):
         self.drop = nn.Dropout2d(p=drop_prob)
 
         self.encoder = nn.Sequential(
-            nn.Conv2d(self.img_channels, 32, kernel_size=3, stride=2, padding=1),  # -> 16x16 or 14x14
+            nn.Conv2d(
+                self.img_channels, 32, kernel_size=3, stride=2, padding=1
+            ),  # -> 16x16 or 14x14
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),  # -> 8x8 or 7x7
             nn.ReLU(),
@@ -34,16 +36,32 @@ class Autoencoder(nn.Module):
         self.decoder = nn.Sequential(
             nn.Linear(self.latent_dim, 128 * 4 * 4),  # [B, 2048]
             nn.Unflatten(dim=1, unflattened_size=(128, 4, 4)),
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(
+                128, 64, kernel_size=3, stride=2, padding=1, output_padding=1
+            ),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(
+                64, 32, kernel_size=3, stride=2, padding=1, output_padding=1
+            ),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, self.img_channels, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.ConvTranspose2d(
+                32,
+                self.img_channels,
+                kernel_size=3,
+                stride=2,
+                padding=1,
+                output_padding=1,
+            ),
             nn.Tanh(),
         )
 
     def forward(self, x):
         z = self.encoder(x)
         decoded = self.decoder(z)
-        decoded = F.interpolate(decoded, size=(self.img_size, self.img_size), mode='bilinear', align_corners=False)
+        decoded = F.interpolate(
+            decoded,
+            size=(self.img_size, self.img_size),
+            mode="bilinear",
+            align_corners=False,
+        )
         return decoded

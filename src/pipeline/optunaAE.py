@@ -27,7 +27,7 @@ class AutoencoderOptunaStudy:
         epochs = trial.suggest_int("epochs", 50, 100)
 
         # ---- Modell, Optimizer, Loss
-        #model = Autoencoder(dataset_type=self.dataset)
+        # model = Autoencoder(dataset_type=self.dataset)
         model = AutoencoderCNN2(dataset_type=self.dataset, drop_prob=drop_prob)
 
         optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -44,7 +44,7 @@ class AutoencoderOptunaStudy:
             save_path=save_path,
             drop_prob=drop_prob,
             epochs=epochs,
-            dataset_type=self.dataset
+            dataset_type=self.dataset,
         )
 
         pipeline.train()
@@ -58,6 +58,7 @@ class AutoencoderOptunaStudy:
 
     def best_params(self):
         return self.study.best_trial.params
+
 
 if __name__ == "__main__":
     study = AutoencoderOptunaStudy()

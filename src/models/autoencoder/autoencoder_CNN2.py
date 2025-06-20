@@ -21,7 +21,9 @@ class AutoencoderCNN2(nn.Module):
         self.drop = nn.Dropout2d(p=drop_prob)
 
         self.encoder = nn.Sequential(
-            nn.Conv2d(self.img_channels, 32, kernel_size=3, stride=2, padding=1),  # -> 16x16
+            nn.Conv2d(
+                self.img_channels, 32, kernel_size=3, stride=2, padding=1
+            ),  # -> 16x16
             nn.ReLU(),
             nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1),  # -> 8x8
             nn.ReLU(),
@@ -36,18 +38,36 @@ class AutoencoderCNN2(nn.Module):
         self.decoder = nn.Sequential(
             nn.Linear(self.latent_dim, 256 * 2 * 2),
             nn.Unflatten(dim=1, unflattened_size=(256, 2, 2)),
-            nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2, padding=1, output_padding=1),  # -> 4x4
+            nn.ConvTranspose2d(
+                256, 128, kernel_size=3, stride=2, padding=1, output_padding=1
+            ),  # -> 4x4
             nn.ReLU(),
-            nn.ConvTranspose2d(128, 64, kernel_size=3, stride=2, padding=1, output_padding=1),  # -> 8x8
+            nn.ConvTranspose2d(
+                128, 64, kernel_size=3, stride=2, padding=1, output_padding=1
+            ),  # -> 8x8
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1),  # -> 16x16
+            nn.ConvTranspose2d(
+                64, 32, kernel_size=3, stride=2, padding=1, output_padding=1
+            ),  # -> 16x16
             nn.ReLU(),
-            nn.ConvTranspose2d(32,self.img_channels,kernel_size=3,stride=2,padding=1, output_padding=1),  # -> 32x32
+            nn.ConvTranspose2d(
+                32,
+                self.img_channels,
+                kernel_size=3,
+                stride=2,
+                padding=1,
+                output_padding=1,
+            ),  # -> 32x32
             nn.Tanh(),
         )
 
     def forward(self, x):
         z = self.encoder(x)
         decoded = self.decoder(z)
-        decoded = F.interpolate(decoded, size=(self.img_size, self.img_size), mode="bilinear", align_corners=False,)
+        decoded = F.interpolate(
+            decoded,
+            size=(self.img_size, self.img_size),
+            mode="bilinear",
+            align_corners=False,
+        )
         return decoded

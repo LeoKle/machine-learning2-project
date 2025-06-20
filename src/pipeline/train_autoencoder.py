@@ -87,7 +87,9 @@ class AutoencoderTrainingPipline:
 
             if epoch >= 2:
                 if test_losses[-1] > test_losses[-2] > test_losses[-3]:
-                    print("Test loss has increased over 3 consecutive epochs. Stopping training.")
+                    print(
+                        "Test loss has increased over 3 consecutive epochs. Stopping training."
+                    )
                     break
 
         self.tracker.export_data()
@@ -114,8 +116,12 @@ class AutoencoderTrainingPipline:
             min_distance_epoch = distances.index(min_distance) + 1
 
             f.write("\n")
-            f.write(f"Best Test Loss: {best_test_loss:.6f} at Epoch {best_test_epoch}\n")
-            f.write(f"Min. Loss Distance: {min_distance:.6f} at Epoch {min_distance_epoch}\n")
+            f.write(
+                f"Best Test Loss: {best_test_loss:.6f} at Epoch {best_test_epoch}\n"
+            )
+            f.write(
+                f"Min. Loss Distance: {min_distance:.6f} at Epoch {min_distance_epoch}\n"
+            )
 
     def train_epoch(self, batch: torch.Tensor) -> float:
         self.optimizer.zero_grad()
@@ -196,5 +202,3 @@ class AutoencoderTrainingPipline:
         Plotter.plot_metrics(
             loss_dict, self.save_path / f"{self.dataset_type}_loss.png"
         )
-
-
