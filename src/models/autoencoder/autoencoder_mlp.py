@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class Autoencoder_lin(nn.Module):
-    def __init__(self, dataset_type="CIFAR10"):
+    def __init__(self, dataset_type="MNIST"):
         super().__init__()
 
         if dataset_type == "MNIST":

@@ -25,7 +25,6 @@ class AutoencoderTrainingPipline:
         epochs: int = 10,
         dataset_type: str = "CIFAR10",
     ):
-
         self.epochs = epochs
         self.drop_prob = drop_prob
         self.dataloader_train = dataloader_train
@@ -40,7 +39,6 @@ class AutoencoderTrainingPipline:
 
         self.tracker = Tracker(self.save_path / f"{self.dataset_type}_metrics.json")
 
-
         self.last_inputs = None
         self.last_reconstructions = None
         self.last_latents = None
@@ -49,6 +47,10 @@ class AutoencoderTrainingPipline:
         self.model.train()
         train_losses = []
         test_losses = []
+
+        best_epoch = 0
+        min_distance = float("inf")
+        best_encoder_state = None
 
         for epoch in range(self.epochs):
             self.current_epoch = epoch + 1
@@ -77,12 +79,43 @@ class AutoencoderTrainingPipline:
 
             print(f"Epoch {epoch+1}: Avg Test Loss = {avg_test_loss:.4f}")
 
+            distance = abs(avg_train_loss - avg_test_loss)
+            if distance < min_distance:
+                min_distance = distance
+                best_epoch = epoch + 1
+                best_encoder_state = self.model.encoder.state_dict()
+
+            if epoch >= 2:
+                if test_losses[-1] > test_losses[-2] > test_losses[-3]:
+                    print("Test loss has increased over 3 consecutive epochs. Stopping training.")
+                    break
+
         self.tracker.export_data()
-
-
         self._save_loss_plot(train_losses, test_losses)
-        self._save_min_loss_distance(train_losses, test_losses)
         self.evaluate_and_save()
+
+        if best_encoder_state is not None:
+            torch.save(
+                best_encoder_state,
+                self.save_path / f"{self.dataset_type}_best_encoder_weights.pth",
+            )
+            print(f"Best encoder (min loss distance) saved from epoch {best_epoch}.")
+
+        with open(self.save_path / f"{self.dataset_type}_epoch_losses.txt", "w") as f:
+            f.write("Epoch\tTrain Loss\tTest Loss\n")
+            for i, (train, test) in enumerate(zip(train_losses, test_losses), start=1):
+                f.write(f"{i}\t{train:.6f}\t{test:.6f}\n")
+
+            best_test_loss = min(test_losses)
+            best_test_epoch = test_losses.index(best_test_loss) + 1
+
+            distances = [abs(t - v) for t, v in zip(train_losses, test_losses)]
+            min_distance = min(distances)
+            min_distance_epoch = distances.index(min_distance) + 1
+
+            f.write("\n")
+            f.write(f"Best Test Loss: {best_test_loss:.6f} at Epoch {best_test_epoch}\n")
+            f.write(f"Min. Loss Distance: {min_distance:.6f} at Epoch {min_distance_epoch}\n")
 
     def train_epoch(self, batch: torch.Tensor) -> float:
         self.optimizer.zero_grad()
@@ -155,22 +188,7 @@ class AutoencoderTrainingPipline:
         img = TF.to_pil_image(grid)
         img.save(path)
 
-    def _save_min_loss_distance(self, train_losses, test_losses):
-
-        distances = np.abs(np.array(train_losses) - np.array(test_losses))
-        min_dist = np.min(distances)
-        min_epoch = np.argmin(distances) + 1
-        result_str = f"Min. Loss Distance: {min_dist:.6f} at Epoch {min_epoch}"
-
-        print(result_str)
-
-        with open(
-            self.save_path / f"{self.dataset_type}_min_loss_distance.txt", "w"
-        ) as f:
-            f.write(result_str)
-
     def _save_loss_plot(self, train_losses, test_losses):
-
         loss_dict: DataDict = {
             "Train Loss": train_losses,
             "Test Loss": test_losses,
@@ -178,3 +196,5 @@ class AutoencoderTrainingPipline:
         Plotter.plot_metrics(
             loss_dict, self.save_path / f"{self.dataset_type}_loss.png"
         )
+
+
