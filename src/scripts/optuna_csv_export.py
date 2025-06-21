@@ -39,4 +39,11 @@ for summary in study_summaries:
     csv_path = os.path.join(OUTPUT_DIR, f"{study_name}.csv")
     df.to_csv(csv_path, index=False)
 
-    print(f"Saved to {csv_path}")
+    print("Best trials:")
+    for trial in study.best_trials:
+        print(f"Trial #{trial.number}")
+        print(f"  Time: {trial.datetime_start} - {trial.datetime_complete}")
+        print(f"  Values (IS ↑, FID ↓): {trial.values}")
+        print(f"  Params: {trial.params}")
+
+    print("\n")
