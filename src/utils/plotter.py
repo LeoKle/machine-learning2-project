@@ -251,3 +251,44 @@ class Plotter:
         if show:
             plt.show()
         plt.close(fig)
+
+    @staticmethod
+    def plot_tracker_dict(
+        data_dict,
+        title="",
+        xlabel="Epoch",
+        ylabel="Value",
+        marker="o",
+        save_path=None,
+        keys_to_plot=None,
+        colors=["r", "b"],
+    ):
+        plt.figure(figsize=(10, 6))
+
+        keys_to_plot = keys_to_plot or list(data_dict.keys())
+        default_colors = ["r", "b"] + [None] * (len(keys_to_plot) - 2)
+        colors = colors or default_colors
+
+        for idx, key in enumerate(keys_to_plot):
+            if key not in data_dict:
+                print(f"Warning: Key '{key}' not found in data_dict. Skipping.")
+                continue
+
+            values = np.array(data_dict[key], dtype=np.float64)
+            color = (
+                colors[idx] if idx < len(colors) and colors[idx] is not None else None
+            )
+            plt.plot(values, label=str(key), marker=marker, linestyle="-", color=color)
+
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+
+        if save_path:
+            plt.savefig(save_path)
+            print(f"Plot saved to {save_path}")
+        else:
+            plt.show()
