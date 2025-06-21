@@ -4,7 +4,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import optuna
 from models.autoencoder.autoencoder_CNN2 import AutoencoderCNN2
-from models.classifier.classifier_linear import Classifier, ClassifierDeep
+from models.classifier.classifier_linear import ClassifierMLP, ClassifierMLPDeep
 from models.classifier.classifier_resnet import ClassifierResNet, ClassifierMLPLarge
 from models.classifier.encoder_classifier import EncoderClassifier
 from utils.device import DEVICE
@@ -16,14 +16,14 @@ from utils.data_setup import prepare_dataset
 
 class ClassifierTrainingPipeline:
     def __init__(
-        self, dataloader_train, dataloader_test, model, loss_function, optimizer
+        self, dataloader_train, dataloader_test, model, loss_function, optimizer, tracker_output_dir="output/tracker_output",
     ):
         self.dataloader_train = dataloader_train
         self.dataloader_test = dataloader_test
         self.model = model.to(DEVICE)
         self.loss_function = loss_function
         self.optimizer = optimizer
-        self.tracker = Tracker()
+        self.tracker = Tracker(tracker_output_dir)
         self.current_epoch = 0
         self.metrics_file = None
 
@@ -216,7 +216,7 @@ class ClassifierTrainingPipeline:
         return avg_loss
 
 
-def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path):
+def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path, lr = 0.0001):
     in_channels = dummy_input.shape[1]
     if in_channels == 1:
         dataset_type = "MNIST"
@@ -242,7 +242,7 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
         encoder, classifier, img_channels=img_channels, img_size=img_size
     ).to(DEVICE)
 
-    optimizer = optim.Adam(combined_model.parameters(), lr=0.0001, betas=(0.9, 0.999))
+    optimizer = optim.Adam(combined_model.parameters(), lr=lr, betas=(0.9, 0.999))
     loss_fn = nn.NLLLoss()
 
     pipeline = ClassifierTrainingPipeline(
@@ -251,6 +251,7 @@ def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path
         model=combined_model,
         loss_function=loss_fn,
         optimizer=optimizer,
+        tracker_output_dir=f"output/tracker_output_{dataset_type}",
     )
 
     return combined_model, pipeline
@@ -283,7 +284,7 @@ def tune_hyperparameters(dataset_type="CIFAR10"):
             encoder_output_size = encoder_output.view(1, -1).size(1)
 
         # Define classifier model
-        classifier = ClassifierMLPLarge(input_size=encoder_output_size)
+        classifier = ClassifierResNet(input_size=encoder_output_size)
         combined_model = EncoderClassifier(
             encoder,
             classifier,
@@ -344,7 +345,7 @@ def train_classifier_with_best_params(dataset_type="CIFAR10"):
         encoder_output_size = encoder_output.view(1, -1).size(1)
 
     # Step 5: Build classifier and full model
-    classifier = ClassifierMLPLarge(input_size=encoder_output_size)
+    classifier = ClassifierResNet(input_size=encoder_output_size)
     model = EncoderClassifier(
         encoder,
         classifier,

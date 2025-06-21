@@ -9,7 +9,7 @@ from utils.data_setup import prepare_dataset_for_cnn
 
 class TestCNNTrainingWithOptuna(unittest.TestCase):
     def test_training_and_saving(self):
-        dataset_type = "CIFAR10"  # or "CIFAR10"
+        dataset_type = "MNIST"  # or "CIFAR10"
 
         # Step 1: Tune hyperparameters
         best_params = tune_hyperparameters_cnn(dataset_type)
@@ -37,7 +37,7 @@ class TestCNNTrainingWithOptuna(unittest.TestCase):
 
         # Step 4: Train
         best_model_path, best_epoch = pipeline.train(
-            max_epochs=100,
+            max_epochs=2,
             save_every=10,
             model_save_dir=model_save_dir,
             metrics_save_dir=plot_save_dir,

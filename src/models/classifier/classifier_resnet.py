@@ -39,7 +39,7 @@ class ClassifierMLPLarge(nn.Module):
 
 
 class ClassifierResNet(nn.Module):
-    def __init__(self, input_size: int, num_classes: int = 10, num_blocks: int = 8):
+    def __init__(self, input_size: int, num_classes: int = 10, num_blocks: int = 4):
         super().__init__()
         # act = get_activation(activation)
 

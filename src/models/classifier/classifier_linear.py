@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 
-class Classifier(nn.Module):
+class ClassifierMLP(nn.Module):
     def __init__(self, input_size: int, num_classes: int = 10):
         super().__init__()
         self.main = nn.Sequential(
@@ -38,7 +38,7 @@ def get_activation(name):
         raise ValueError(f"Unsupported activation: {name}")
 
 
-class ClassifierDeep(nn.Module):
+class ClassifierMLPDeep(nn.Module):
     def __init__(self, input_size: int, num_classes: int = 10, activation="leaky_relu"):
         super().__init__()
         act = get_activation(activation)
