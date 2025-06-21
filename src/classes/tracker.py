@@ -43,7 +43,8 @@ class Tracker:
         return self.metrics
 
     def import_data(self):
-        pass
+        with open(self.output) as f:
+            return json.load(f)
 
     def export_data(self):
         with self.output.open("w") as f:
