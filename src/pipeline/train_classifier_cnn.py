@@ -13,7 +13,13 @@ from pathlib import Path
 
 class ClassifierTrainingPipeline:
     def __init__(
-        self, dataloader_train, dataloader_test, model, loss_function, optimizer, tracker_output_dir="output/tracker_output",
+        self,
+        dataloader_train,
+        dataloader_test,
+        model,
+        loss_function,
+        optimizer,
+        tracker_output_dir="output/tracker_output",
     ):
         self.dataloader_train = dataloader_train
         self.dataloader_test = dataloader_test
@@ -228,7 +234,12 @@ def train_classifier_cnn(
     loss_fn = nn.NLLLoss()
 
     pipeline = ClassifierTrainingPipeline(
-        train_loader, test_loader, model, loss_fn, optimizer, tracker_output_dir=f"output/tracker_output_cnn_{dataset_type}"
+        train_loader,
+        test_loader,
+        model,
+        loss_fn,
+        optimizer,
+        tracker_output_dir=f"output/tracker_output_cnn_{dataset_type}",
     )
     return model, pipeline
 

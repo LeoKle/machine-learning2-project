@@ -60,10 +60,30 @@ class TestLinearOnEncodedTraining(unittest.TestCase):
             model.load_state_dict(torch.load(best_model_path))
 
         # Step 4: Visualizations
-        Plotter.plot_metrics(pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png")
-        Plotter.plot_accuracy(accuracy_values=pipeline.tracker.get_metrics()["accuracy"], output_file_name=plot_save_dir / "classifier_accuracy.png", dataset_type=dataset_type)
-        Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_1.png", show=False)
-        Plotter.plot_predictions(model, test_loader, dataset_type, DEVICE, plot_save_dir / f"{dataset_type}_predictions_2.png", show=False)
+        Plotter.plot_metrics(
+            pipeline.tracker.get_metrics(), plot_save_dir / "classifier_metrics.png"
+        )
+        Plotter.plot_accuracy(
+            accuracy_values=pipeline.tracker.get_metrics()["accuracy"],
+            output_file_name=plot_save_dir / "classifier_accuracy.png",
+            dataset_type=dataset_type,
+        )
+        Plotter.plot_predictions(
+            model,
+            test_loader,
+            dataset_type,
+            DEVICE,
+            plot_save_dir / f"{dataset_type}_predictions_1.png",
+            show=False,
+        )
+        Plotter.plot_predictions(
+            model,
+            test_loader,
+            dataset_type,
+            DEVICE,
+            plot_save_dir / f"{dataset_type}_predictions_2.png",
+            show=False,
+        )
 
         if dataset_type == "MNIST":
             Plotter.plot_confusion_matrix_mnist(

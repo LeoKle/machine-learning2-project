@@ -16,7 +16,13 @@ from utils.data_setup import prepare_dataset
 
 class ClassifierTrainingPipeline:
     def __init__(
-        self, dataloader_train, dataloader_test, model, loss_function, optimizer, tracker_output_dir="output/tracker_output",
+        self,
+        dataloader_train,
+        dataloader_test,
+        model,
+        loss_function,
+        optimizer,
+        tracker_output_dir="output/tracker_output",
     ):
         self.dataloader_train = dataloader_train
         self.dataloader_test = dataloader_test
@@ -216,7 +222,9 @@ class ClassifierTrainingPipeline:
         return avg_loss
 
 
-def train_classifier_linear(train_loader, test_loader, dummy_input, encoder_path, lr = 0.0001):
+def train_classifier_linear(
+    train_loader, test_loader, dummy_input, encoder_path, lr=0.0001
+):
     in_channels = dummy_input.shape[1]
     if in_channels == 1:
         dataset_type = "MNIST"
