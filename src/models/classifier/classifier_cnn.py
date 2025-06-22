@@ -17,14 +17,12 @@ class CNNClassifier3(nn.Module):
             nn.Conv2d(input_channels, 32, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2),
-
             nn.Conv2d(32, 64, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2),
-
             nn.Conv2d(64, 128, 3, padding=1),
             nn.ReLU(),
-            nn.MaxPool2d(2)
+            nn.MaxPool2d(2),
         )
 
         if dataset == "MNIST":
@@ -36,7 +34,8 @@ class CNNClassifier3(nn.Module):
         x = self.conv_layers(x)
         x = x.view(x.size(0), -1)
         return F.log_softmax(self.fc(x), dim=1)
-    
+
+
 class CNNClassifier4(nn.Module):
     def __init__(self, dataset="MNIST", num_classes=10):
         super().__init__()
@@ -71,4 +70,4 @@ class CNNClassifier4(nn.Module):
     def forward(self, x):
         x = self.conv_layers(x)
         x = x.view(x.size(0), -1)
-        return F.log_softmax(self.fc(x), dim=1) 
+        return F.log_softmax(self.fc(x), dim=1)
