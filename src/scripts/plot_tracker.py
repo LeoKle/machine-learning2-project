@@ -12,6 +12,7 @@ STUDY_NAMES = [
     "gan_IS_FID_mnist_generatorcnn_discriminator",
     "gan_IS_FID_mnist_generatorcnn_discriminatorcnn",
     "gan_IS_mnist_generator_discriminator",
+    "dcgan",
 ]
 TRIAL_NUMBERS = range(0, 15)
 FILE = "gan_metrics.json"
