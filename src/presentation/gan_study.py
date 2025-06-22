@@ -6,10 +6,10 @@ from pipeline.optuna_gan import OptunaStudy
 
 
 if __name__ == "__main__":
-    generator = GeneratorCNN2
+    generator = GeneratorCNN
     discriminator = DiscriminatorCNN
-    optuna_study = OptunaStudy(generator, discriminator, dataset="CIFAR10")
-    optuna_study.optimize(n_trials=2)
+    optuna_study = OptunaStudy(generator, discriminator, dataset="MNIST")
+    optuna_study.optimize(n_trials=4)
 
     print("Best trials:")
     for trial in optuna_study.best_trials():

@@ -51,6 +51,7 @@ class GeneratorCNN2(nn.Module):
     def __init__(self, latent_dim=100, dataset: Literal["MNIST", "CIFAR10"] = "MNIST"):
         super(GeneratorCNN2, self).__init__()
         self.latent_dim = latent_dim
+
         if dataset == "MNIST":
             self.img_size = 28
             self.img_channels = 1
@@ -60,30 +61,37 @@ class GeneratorCNN2(nn.Module):
         else:
             raise ValueError("Unsupported dataset: choose 'MNIST' or 'CIFAR10'")
 
-        self.init_size = 4  # Starting size (4x4)
-        self.linear = nn.Sequential(
-            nn.Linear(latent_dim, 256 * self.init_size * self.init_size),
-            nn.LeakyReLU(0.2, inplace=True),
+        self.init_size = 4  # 4x4 base resolution
+        self.fc = nn.Sequential(
+            nn.Linear(latent_dim, 512 * self.init_size * self.init_size),
+            nn.BatchNorm1d(512 * self.init_size * self.init_size),
+            nn.ReLU(True),
         )
 
-        self.main = nn.Sequential(
-            # Output of linear layer reshaped to (256, 4, 4)
-            nn.Unflatten(1, (256, self.init_size, self.init_size)),
-            # 4x4 -> 8x8
-            nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2, inplace=True),
-            # 8x8 -> 16x16
-            nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2, inplace=True),
-            # 16x16 -> 32x32
-            nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2, inplace=True),
-            # Output: 32x32x3
-            nn.Conv2d(128, self.img_channels, kernel_size=3, stride=1, padding=1),
-            nn.Tanh(),
+        self.conv_blocks = nn.Sequential(
+            nn.Unflatten(1, (512, self.init_size, self.init_size)),  # (512, 4, 4)
+            nn.ConvTranspose2d(
+                512, 256, kernel_size=4, stride=2, padding=1
+            ),  # (256, 8, 8)
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(
+                256, 128, kernel_size=4, stride=2, padding=1
+            ),  # (128, 16, 16)
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(
+                128, 64, kernel_size=4, stride=2, padding=1
+            ),  # (64, 32, 32)
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.Conv2d(
+                64, self.img_channels, kernel_size=3, stride=1, padding=1
+            ),  # Final output
+            nn.Tanh(),  # [-1, 1] range
         )
 
     def forward(self, z):
-        x = self.linear(z)
-        x = self.main(x)
-        return x
+        out = self.fc(z)
+        out = self.conv_blocks(out)
+        return out
