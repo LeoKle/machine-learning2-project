@@ -1,0 +1,3 @@
+Best Accuracy: 98.40%
+batch_size: 32
+lr: 9.140946480582927e-05
