@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import optuna
-from models.classifier.classifier_cnn import CNNClassifier
+from models.classifier.classifier_cnn import CNNClassifier3, CNNClassifier4
 from utils.device import DEVICE
 from classes.tracker import Tracker
 from classes.metrics import Metrics
@@ -229,7 +229,7 @@ def train_classifier_cnn(
     else:
         raise ValueError("Unsupported input shape.")
 
-    model = CNNClassifier(dataset=dataset_type).to(DEVICE)
+    model = CNNClassifier4(dataset=dataset_type).to(DEVICE)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     loss_fn = nn.NLLLoss()
 
