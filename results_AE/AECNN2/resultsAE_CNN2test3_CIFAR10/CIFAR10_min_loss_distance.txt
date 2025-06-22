@@ -1,0 +1,1 @@
+Min. Loss Distance: 0.000014 at Epoch 20

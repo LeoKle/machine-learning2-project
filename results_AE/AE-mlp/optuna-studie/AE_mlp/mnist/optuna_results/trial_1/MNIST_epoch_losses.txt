@@ -1,0 +1,9 @@
+Epoch	Train Loss	Test Loss
+1	0.136569	0.106245
+2	0.099028	0.091427
+3	0.093145	0.087646
+4	0.090792	0.089417
+5	0.089628	0.090453
+
+Best Test Loss: 0.087646 at Epoch 3
+Min. Loss Distance: 0.000825 at Epoch 5

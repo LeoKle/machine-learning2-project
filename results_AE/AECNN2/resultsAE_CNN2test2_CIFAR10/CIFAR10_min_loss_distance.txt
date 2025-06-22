@@ -1,0 +1,1 @@
+Min. Loss Distance: 0.000104 at Epoch 7
